@@ -5,10 +5,14 @@ type BackgroundSelectorProps = {
   onBackgroundChange: (background: BoardBackground) => void;
 };
 
-const backgrounds: Array<{ value: BoardBackground; label: string }> = [
-  { value: "grid", label: "Grid" },
-  { value: "dots", label: "Dots" },
-  { value: "plain", label: "Plain" },
+const backgrounds: Array<{
+  value: BoardBackground;
+  label: string;
+  tone: string;
+}> = [
+  { value: "grid", label: "Notebook", tone: "toolbar__theme-preview--grid" },
+  { value: "dots", label: "Pinned", tone: "toolbar__theme-preview--dots" },
+  { value: "plain", label: "Cream", tone: "toolbar__theme-preview--plain" },
 ];
 
 export function BackgroundSelector({
@@ -16,20 +20,28 @@ export function BackgroundSelector({
   onBackgroundChange,
 }: BackgroundSelectorProps) {
   return (
-    <label className="toolbar__background">
-      <span>Board</span>
-      <select
-        value={background}
-        onChange={(event) =>
-          onBackgroundChange(event.target.value as BoardBackground)
-        }
-      >
+    <div className="toolbar__background">
+      <span>Theme</span>
+      <div className="toolbar__themes" aria-label="Board themes" role="radiogroup">
         {backgrounds.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
+          <button
+            key={option.value}
+            type="button"
+            className={`toolbar__theme${
+              background === option.value ? " is-active" : ""
+            }`}
+            onClick={() => onBackgroundChange(option.value)}
+            aria-pressed={background === option.value}
+            title={`Use ${option.label} theme`}
+          >
+            <span
+              className={`toolbar__theme-preview ${option.tone}`}
+              aria-hidden="true"
+            />
+            <span className="toolbar__theme-label">{option.label}</span>
+          </button>
         ))}
-      </select>
-    </label>
+      </div>
+    </div>
   );
 }

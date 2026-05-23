@@ -342,9 +342,69 @@ button {
   font-size: 0.92rem;
 }
 
-.toolbar__background select {
-  min-width: 128px;
-  padding: 10px 12px;
+.toolbar__background {
+  gap: 8px;
+}
+
+.toolbar__themes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toolbar__theme {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 112px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 18px;
+  background: rgba(255, 252, 245, 0.9);
+}
+
+.toolbar__theme.is-active {
+  border-color: #8b6850;
+  box-shadow: 0 0 0 2px rgba(139, 104, 80, 0.12);
+}
+
+.toolbar__theme-preview {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(126, 101, 75, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.toolbar__theme-preview--grid {
+  background:
+    linear-gradient(rgba(161, 186, 215, 0.26) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(161, 186, 215, 0.26) 1px, transparent 1px),
+    linear-gradient(180deg, #fffefb 0%, #f4efe5 100%);
+  background-size:
+    9px 9px,
+    9px 9px,
+    100% 100%;
+}
+
+.toolbar__theme-preview--dots {
+  background:
+    radial-gradient(circle, rgba(177, 168, 156, 0.4) 1px, transparent 1px),
+    linear-gradient(180deg, #fffdf8 0%, #efe6d9 100%);
+  background-size:
+    8px 8px,
+    100% 100%;
+}
+
+.toolbar__theme-preview--plain {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.5), transparent 30%),
+    linear-gradient(180deg, #f7efdf 0%, #eadfc9 100%);
+}
+
+.toolbar__theme-label {
+  font-size: 0.88rem;
+  color: #5d4d40;
 }
 
 .toolbar__sticky-controls {
@@ -471,8 +531,14 @@ button {
     width: 100%;
   }
 
-  .toolbar__background select {
+  .toolbar__themes {
     width: 100%;
+    gap: 8px;
+  }
+
+  .toolbar__theme {
+    flex: 1 1 96px;
+    min-width: 0;
   }
 
   .toolbar__sticky-controls {
