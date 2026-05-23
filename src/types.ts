@@ -52,9 +52,26 @@ export type TapeItem = BaseItem & {
 export type ImageItem = BaseItem & {
   type: "image";
   src: string;
+  storagePath?: string;
   width: number;
   height: number;
   name: string;
+};
+
+export type BoardParticipant = {
+  clientId: string;
+  color: string;
+  editingStickyId: string | null;
+  name: string;
+  selectedItemId: string | null;
+};
+
+export type RemoteCursor = {
+  clientId: string;
+  color: string;
+  name: string;
+  x: number;
+  y: number;
 };
 
 export type BoardItem =

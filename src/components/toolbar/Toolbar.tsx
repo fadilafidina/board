@@ -27,6 +27,7 @@ type ToolbarProps = {
   onStickySizeChange: (size: StickySize) => void;
   persistenceWarning: string | null;
   selectedItem: BoardItem | undefined;
+  statusMessage: string | null;
 };
 
 export function Toolbar({
@@ -47,6 +48,7 @@ export function Toolbar({
   onStickySizeChange,
   persistenceWarning,
   selectedItem,
+  statusMessage,
 }: ToolbarProps) {
   const selectedSticky =
     selectedItem?.type === "sticky-note" ? selectedItem : undefined;
@@ -79,7 +81,11 @@ export function Toolbar({
         onStickySizeChange={onStickySizeChange}
       />
 
-      <PersistenceNotice message={persistenceWarning} />
+      <PersistenceNotice
+        messages={[statusMessage, persistenceWarning].filter(
+          (message): message is string => Boolean(message),
+        )}
+      />
     </div>
   );
 }

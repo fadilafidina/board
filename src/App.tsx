@@ -1,22 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { Toolbar } from "./components/Toolbar";
-import { WhiteboardCanvas } from "./components/WhiteboardCanvas";
-import type {
-  BoardBackground,
-  BoardItem,
-  ImageItem,
-  PinItem,
-  StickerItem,
-  StickyNoteItem,
-  TapeItem,
-} from "./types";
-import { BOARD_HEIGHT, BOARD_WIDTH, STICKER_SIZE, getStickySizeDimensions } from "./types";
+import { LiveList, LiveObject } from "@liveblocks/client";
 import {
-  type PersistedState,
-  STORAGE_KEY,
-  loadInitialState,
-  prepareUploadedImage,
-} from "./lib/board-state";
+  ClientSideSuspense,
+  LiveblocksProvider,
+  RoomProvider,
+  useMutation,
+  useMyPresence,
+  useOthers,
+  useStorage,
+  useUpdateMyPresence,
+} from "@liveblocks/react/suspense";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BoardWorkspace } from "./components/board/BoardWorkspace";
 import {
   deleteBoardItem,
   moveBoardItem,
@@ -27,15 +21,132 @@ import {
   updateBoardStickySize,
   updateBoardStickyText,
 } from "./lib/board-actions";
+import {
+  createImageItem,
+  createPinItem,
+  createStickerItem,
+  createStickyNoteItem,
+  createTapeItem,
+  loadInitialState,
+  prepareUploadedImage,
+  STORAGE_KEY,
+  type PersistedState,
+} from "./lib/board-state";
+import {
+  createRoomId,
+  getGuestProfile,
+  getLiveblocksPublicKey,
+  getRoomIdFromUrl,
+  isLiveblocksEnabled,
+  setRoomIdInUrl,
+} from "./lib/liveblocks-room";
+import type {
+  BoardBackground,
+  BoardItem,
+  BoardParticipant,
+  RemoteCursor,
+  StickyColor,
+  StickySize,
+} from "./types";
+
+function toLiveblocksItems(items: BoardItem[]) {
+  return new LiveList(items.map((item) => new LiveObject({ ...item })));
+}
+
+type BoardControls = {
+  background: BoardBackground;
+  editingStickyId: string | null;
+  items: BoardItem[];
+  onAddHeart: () => void;
+  onAddImage: (file: File) => Promise<void>;
+  onAddPin: () => void;
+  onAddStar: () => void;
+  onAddSticky: () => void;
+  onAddTape: () => void;
+  onBackgroundChange: (background: BoardBackground) => void;
+  onDeleteSelected: () => void;
+  onMoveBackward: () => void;
+  onMoveForward: () => void;
+  onMoveItem: (itemId: string, x: number, y: number) => void;
+  onSelectItem: (itemId: string | null) => void;
+  onStartStickyEditing: (itemId: string) => void;
+  onStickyColorChange: (color: StickyColor) => void;
+  onStickySizeChange: (size: StickySize) => void;
+  onStickyTextChange: (text: string) => void;
+  onStopStickyEditing: () => void;
+  onTransformItem: (itemId: string, transform: ItemTransform) => void;
+  persistenceWarning: string | null;
+  remoteCursors: RemoteCursor[];
+  selectedItemId: string | null;
+  statusMessage: string | null;
+};
+
+type LocalBoardProps = {
+  initialBackground: BoardBackground;
+  initialItems: BoardItem[];
+};
 
 export default function App() {
   const initialState = useMemo(() => loadInitialState(), []);
-  const [items, setItems] = useState<BoardItem[]>(initialState.items);
+  const liveblocksEnabled = isLiveblocksEnabled();
+  const liveblocksKey = getLiveblocksPublicKey();
+  const roomId = useMemo(
+    () => (liveblocksEnabled ? getRoomIdFromUrl() ?? createRoomId() : null),
+    [liveblocksEnabled],
+  );
+  const guestProfile = useMemo(
+    () => (liveblocksEnabled ? getGuestProfile() : null),
+    [liveblocksEnabled],
+  );
+
+  useEffect(() => {
+    if (!liveblocksEnabled || !roomId || getRoomIdFromUrl()) {
+      return;
+    }
+
+    setRoomIdInUrl(roomId);
+  }, [liveblocksEnabled, roomId]);
+
+  if (!liveblocksEnabled) {
+    return (
+      <LocalBoard
+        initialBackground={initialState.background}
+        initialItems={initialState.items}
+      />
+    );
+  }
+
+  return (
+    <LiveblocksProvider publicApiKey={liveblocksKey}>
+      <RoomProvider
+        id={roomId ?? createRoomId()}
+        initialPresence={{
+          color: guestProfile?.color ?? "#8b6850",
+          cursor: null,
+          editingStickyId: null,
+          name: guestProfile?.name ?? "Guest",
+          selectedItemId: null,
+        }}
+        initialStorage={{
+          background: initialState.background,
+          items: toLiveblocksItems(initialState.items),
+        }}
+      >
+        <ClientSideSuspense fallback={<ConnectingBoard />}>
+          {() => <LiveblocksBoard />}
+        </ClientSideSuspense>
+      </RoomProvider>
+    </LiveblocksProvider>
+  );
+}
+
+function LocalBoard({ initialBackground, initialItems }: LocalBoardProps) {
+  const [items, setItems] = useState(initialItems);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [editingStickyId, setEditingStickyId] = useState<string | null>(null);
-  const [persistenceWarning, setPersistenceWarning] = useState<string | null>(null);
-  const [background, setBackground] = useState<BoardBackground>(
-    initialState.background,
+  const [background, setBackground] = useState<BoardBackground>(initialBackground);
+  const [persistenceWarning, setPersistenceWarning] = useState<string | null>(
+    null,
   );
 
   useEffect(() => {
@@ -55,6 +166,342 @@ export default function App() {
     }
   }, [background, items]);
 
+  useDeleteShortcut({
+    items,
+    onDelete: (itemId) => {
+      setItems((currentItems) => deleteBoardItem(currentItems, itemId));
+      setSelectedItemId(null);
+      setEditingStickyId(null);
+    },
+    selectedItemId,
+  });
+
+  const controls = useBoardControls({
+    background,
+    editingStickyId,
+    items,
+    onBackgroundCommit: setBackground,
+    onItemsCommit: setItems,
+    onSelectItem: setSelectedItemId,
+    onSetEditingStickyId: setEditingStickyId,
+    persistenceWarning,
+    remoteParticipants: [],
+    selectedItemId,
+    statusMessage: "Local board mode. Add a Liveblocks public key to share it.",
+  });
+
+  return (
+    <BoardWorkspace
+      {...controls}
+      onCursorLeave={() => {}}
+      onCursorMove={() => {}}
+      remoteCursors={[]}
+    />
+  );
+}
+
+function LiveblocksBoard() {
+  const items = useStorage((root) => root.items) as BoardItem[];
+  const background = useStorage((root) => root.background) as BoardBackground;
+  const others = useOthers();
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [editingStickyId, setEditingStickyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const updateMyPresence = useUpdateMyPresence();
+  const [, setMyPresence] = useMyPresence();
+
+  const remoteParticipants = useMemo(
+    () =>
+      others.map((other) => ({
+        clientId: String(other.connectionId),
+        color: other.presence.color,
+        editingStickyId: other.presence.editingStickyId,
+        name: other.presence.name,
+        selectedItemId: other.presence.selectedItemId,
+      })) satisfies BoardParticipant[],
+    [others],
+  );
+
+  const remoteCursors = useMemo(
+    () =>
+      others
+        .filter((other) => other.presence.cursor !== null)
+        .map((other) => ({
+          clientId: String(other.connectionId),
+          color: other.presence.color,
+          name: other.presence.name,
+          x: other.presence.cursor?.x ?? 0,
+          y: other.presence.cursor?.y ?? 0,
+        })) satisfies RemoteCursor[],
+    [others],
+  );
+
+  const saveItems = useMutation(({ storage }, nextItems: BoardItem[]) => {
+    storage.set("items", toLiveblocksItems(nextItems));
+  }, []);
+
+  const saveBackground = useMutation(
+    ({ storage }, nextBackground: BoardBackground) => {
+      storage.set("background", nextBackground);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    updateMyPresence({
+      editingStickyId,
+      selectedItemId,
+    });
+  }, [editingStickyId, selectedItemId, updateMyPresence]);
+
+  useEffect(() => {
+    if (selectedItemId && !items.some((item) => item.id === selectedItemId)) {
+      setSelectedItemId(null);
+      setEditingStickyId(null);
+    }
+  }, [items, selectedItemId]);
+
+  useDeleteShortcut({
+    items,
+    onDelete: (itemId) => {
+      saveItems(deleteBoardItem(items, itemId));
+      setSelectedItemId(null);
+      setEditingStickyId(null);
+      setNotice(null);
+    },
+    selectedItemId,
+  });
+
+  const controls = useBoardControls({
+    background,
+    editingStickyId,
+    items,
+    onBackgroundCommit: (nextBackground) => {
+      saveBackground(nextBackground);
+      setNotice(null);
+    },
+    onItemsCommit: (nextItems) => {
+      saveItems(nextItems);
+      setNotice(null);
+    },
+    onSelectItem: (itemId) => {
+      setSelectedItemId(itemId);
+
+      if (itemId !== editingStickyId) {
+        setEditingStickyId(null);
+      }
+    },
+    onSetEditingStickyId: setEditingStickyId,
+    persistenceWarning: notice,
+    remoteParticipants,
+    selectedItemId,
+    statusMessage: `${others.length + 1} ${
+      others.length === 0 ? "person" : "people"
+    } on this board. Share this URL to collaborate live.`,
+  });
+
+  const cursorThrottleRef = useRef(0);
+
+  return (
+    <BoardWorkspace
+      {...controls}
+      onCursorLeave={() => {
+        setMyPresence({ cursor: null });
+      }}
+      onCursorMove={(cursor) => {
+        const now = performance.now();
+
+        if (now - cursorThrottleRef.current < 40) {
+          return;
+        }
+
+        cursorThrottleRef.current = now;
+        setMyPresence({ cursor });
+      }}
+      onStartStickyEditing={(itemId) => {
+        const activeEditor = remoteParticipants.find(
+          (participant) => participant.editingStickyId === itemId,
+        );
+
+        if (activeEditor) {
+          setNotice(`${activeEditor.name} is editing this sticky note right now.`);
+          return;
+        }
+
+        controls.onSelectItem(itemId);
+        setEditingStickyId(itemId);
+        setNotice(null);
+      }}
+      remoteCursors={remoteCursors}
+      statusMessage={`${others.length + 1} ${
+        others.length === 0 ? "person" : "people"
+      } on this board. Share this URL to collaborate live.`}
+    />
+  );
+}
+
+type UseBoardControlsArgs = {
+  background: BoardBackground;
+  editingStickyId: string | null;
+  items: BoardItem[];
+  onBackgroundCommit: (background: BoardBackground) => void;
+  onItemsCommit: (items: BoardItem[]) => void;
+  onSelectItem: (itemId: string | null) => void;
+  onSetEditingStickyId: (itemId: string | null) => void;
+  persistenceWarning: string | null;
+  remoteParticipants: BoardParticipant[];
+  selectedItemId: string | null;
+  statusMessage: string | null;
+};
+
+function useBoardControls({
+  background,
+  editingStickyId,
+  items,
+  onBackgroundCommit,
+  onItemsCommit,
+  onSelectItem,
+  onSetEditingStickyId,
+  persistenceWarning,
+  remoteParticipants,
+  selectedItemId,
+  statusMessage,
+}: UseBoardControlsArgs): BoardControls {
+  function commitItems(nextItems: BoardItem[]) {
+    onItemsCommit(nextItems);
+  }
+
+  function handleSelectItem(itemId: string | null) {
+    onSelectItem(itemId);
+
+    if (itemId === null || itemId !== editingStickyId) {
+      onSetEditingStickyId(null);
+    }
+  }
+
+  return {
+    background,
+    editingStickyId,
+    items,
+    onAddHeart: () => {
+      commitItems([...items, createStickerItem("heart")]);
+      onSetEditingStickyId(null);
+    },
+    onAddImage: async (file) => {
+      const preparedImage = await prepareUploadedImage(file);
+
+      commitItems([
+        ...items,
+        createImageItem({
+          height: preparedImage.height,
+          name: file.name,
+          src: preparedImage.src,
+          width: preparedImage.width,
+        }),
+      ]);
+      onSetEditingStickyId(null);
+    },
+    onAddPin: () => {
+      commitItems([...items, createPinItem()]);
+      onSetEditingStickyId(null);
+    },
+    onAddStar: () => {
+      commitItems([...items, createStickerItem("star")]);
+      onSetEditingStickyId(null);
+    },
+    onAddSticky: () => {
+      commitItems([...items, createStickyNoteItem()]);
+      onSetEditingStickyId(null);
+    },
+    onAddTape: () => {
+      commitItems([...items, createTapeItem()]);
+      onSetEditingStickyId(null);
+    },
+    onBackgroundChange: onBackgroundCommit,
+    onDeleteSelected: () => {
+      if (!selectedItemId) {
+        return;
+      }
+
+      commitItems(deleteBoardItem(items, selectedItemId));
+      onSelectItem(null);
+      onSetEditingStickyId(null);
+    },
+    onMoveBackward: () => {
+      if (!selectedItemId) {
+        return;
+      }
+
+      commitItems(moveBoardLayer(items, selectedItemId, "backward"));
+    },
+    onMoveForward: () => {
+      if (!selectedItemId) {
+        return;
+      }
+
+      commitItems(moveBoardLayer(items, selectedItemId, "forward"));
+    },
+    onMoveItem: (itemId, x, y) => {
+      commitItems(moveBoardItem(items, itemId, x, y));
+    },
+    onSelectItem: handleSelectItem,
+    onStartStickyEditing: (itemId) => {
+      const activeEditor = remoteParticipants.find(
+        (participant) => participant.editingStickyId === itemId,
+      );
+
+      if (activeEditor) {
+        return;
+      }
+
+      onSelectItem(itemId);
+      onSetEditingStickyId(itemId);
+    },
+    onStickyColorChange: (color) => {
+      if (!selectedItemId) {
+        return;
+      }
+
+      commitItems(updateBoardStickyColor(items, selectedItemId, color));
+    },
+    onStickySizeChange: (size) => {
+      if (!selectedItemId) {
+        return;
+      }
+
+      commitItems(updateBoardStickySize(items, selectedItemId, size));
+    },
+    onStickyTextChange: (text) => {
+      if (!editingStickyId) {
+        return;
+      }
+
+      commitItems(updateBoardStickyText(items, editingStickyId, text));
+    },
+    onStopStickyEditing: () => {
+      onSetEditingStickyId(null);
+    },
+    onTransformItem: (itemId, transform) => {
+      commitItems(transformBoardItem(items, itemId, transform));
+    },
+    persistenceWarning,
+    remoteCursors: [],
+    selectedItemId,
+    statusMessage,
+  };
+}
+
+type DeleteShortcutArgs = {
+  items: BoardItem[];
+  onDelete: (itemId: string) => void;
+  selectedItemId: string | null;
+};
+
+function useDeleteShortcut({
+  items,
+  onDelete,
+  selectedItemId,
+}: DeleteShortcutArgs) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       const activeElement = document.activeElement;
@@ -67,12 +514,15 @@ export default function App() {
         return;
       }
 
-      if (event.key === "Backspace" || event.key === "Delete") {
-        event.preventDefault();
-        setItems((currentItems) => deleteBoardItem(currentItems, selectedItemId));
-        setSelectedItemId(null);
-        setEditingStickyId(null);
+      if (
+        !items.some((item) => item.id === selectedItemId) ||
+        (event.key !== "Backspace" && event.key !== "Delete")
+      ) {
+        return;
       }
+
+      event.preventDefault();
+      onDelete(selectedItemId);
     }
 
     window.addEventListener("keydown", handleKeyDown);
@@ -80,221 +530,22 @@ export default function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedItemId]);
+  }, [items, onDelete, selectedItemId]);
+}
 
-  const selectedIndex = items.findIndex((item) => item.id === selectedItemId);
-  const selectedItem = selectedIndex >= 0 ? items[selectedIndex] : undefined;
-
-  function updateItems(updater: (currentItems: BoardItem[]) => BoardItem[]) {
-    setItems((currentItems) => updater(currentItems));
-  }
-
-  function selectItem(itemId: string | null) {
-    setSelectedItemId(itemId);
-
-    if (itemId !== editingStickyId) {
-      setEditingStickyId(null);
-    }
-  }
-
-  function addStickyNote() {
-    const dimensions = getStickySizeDimensions("medium");
-    const stickyNote: StickyNoteItem = {
-      id: crypto.randomUUID(),
-      type: "sticky-note",
-      x: BOARD_WIDTH / 2 - dimensions.width / 2,
-      y: BOARD_HEIGHT / 2 - dimensions.height / 2,
-      ...dimensions,
-      text: "New note",
-      color: "butter",
-      size: "medium",
-      rotation: -4,
-    };
-
-    updateItems((currentItems) => [...currentItems, stickyNote]);
-    setSelectedItemId(stickyNote.id);
-    setEditingStickyId(stickyNote.id);
-  }
-
-  function addPin() {
-    const pin: PinItem = {
-      id: crypto.randomUUID(),
-      type: "pin",
-      x: BOARD_WIDTH / 2 - 16,
-      y: BOARD_HEIGHT / 2 - 130,
-      kind: "round",
-      color: "#d27863",
-    };
-
-    updateItems((currentItems) => [...currentItems, pin]);
-    setSelectedItemId(pin.id);
-    setEditingStickyId(null);
-  }
-
-  function addSticker(kind: StickerItem["kind"]) {
-    const sticker: StickerItem = {
-      id: crypto.randomUUID(),
-      type: "sticker",
-      x: BOARD_WIDTH / 2 + 70,
-      y: BOARD_HEIGHT / 2 - 70,
-      kind,
-      color: kind === "star" ? "#efc068" : "#d9868c",
-      width: STICKER_SIZE,
-      height: STICKER_SIZE,
-      rotation: kind === "star" ? -5 : 6,
-    };
-
-    updateItems((currentItems) => [...currentItems, sticker]);
-    setSelectedItemId(sticker.id);
-    setEditingStickyId(null);
-  }
-
-  function addTape() {
-    const tape: TapeItem = {
-      id: crypto.randomUUID(),
-      type: "tape",
-      x: BOARD_WIDTH / 2 - 60,
-      y: BOARD_HEIGHT / 2 - 150,
-      kind: "strip",
-      color: "rgba(244, 232, 202, 0.72)",
-      rotation: -10,
-    };
-
-    updateItems((currentItems) => [...currentItems, tape]);
-    setSelectedItemId(tape.id);
-    setEditingStickyId(null);
-  }
-
-  async function addUploadedImage(file: File) {
-    try {
-      const preparedImage = await prepareUploadedImage(file);
-      const imageItem: ImageItem = {
-        id: crypto.randomUUID(),
-        type: "image",
-        name: file.name,
-        src: preparedImage.src,
-        width: preparedImage.width,
-        height: preparedImage.height,
-        x: BOARD_WIDTH / 2 - preparedImage.width / 2,
-        y: BOARD_HEIGHT / 2 - preparedImage.height / 2,
-        rotation: -2,
-      };
-
-      updateItems((currentItems) => [...currentItems, imageItem]);
-      setSelectedItemId(imageItem.id);
-      setEditingStickyId(null);
-    } catch {
-      setPersistenceWarning("That image could not be added.");
-    }
-  }
-
-  function moveItem(itemId: string, nextX: number, nextY: number) {
-    updateItems((currentItems) => moveBoardItem(currentItems, itemId, nextX, nextY));
-  }
-
-  function transformItem(itemId: string, transform: ItemTransform) {
-    updateItems((currentItems) =>
-      transformBoardItem(currentItems, itemId, transform),
-    );
-  }
-
-  function updateStickyText(text: string) {
-    if (!selectedItemId) {
-      return;
-    }
-
-    updateItems((currentItems) =>
-      updateBoardStickyText(currentItems, selectedItemId, text),
-    );
-  }
-
-  function updateStickyColor(color: StickyNoteItem["color"]) {
-    if (!selectedItemId) {
-      return;
-    }
-
-    updateItems((currentItems) =>
-      updateBoardStickyColor(currentItems, selectedItemId, color),
-    );
-  }
-
-  function updateStickySize(size: StickyNoteItem["size"]) {
-    if (!selectedItemId) {
-      return;
-    }
-
-    updateItems((currentItems) =>
-      updateBoardStickySize(currentItems, selectedItemId, size),
-    );
-  }
-
-  function deleteSelectedItem() {
-    if (!selectedItemId) {
-      return;
-    }
-
-    updateItems((currentItems) => deleteBoardItem(currentItems, selectedItemId));
-    setSelectedItemId(null);
-    setEditingStickyId(null);
-  }
-
-  function moveLayer(direction: "backward" | "forward") {
-    if (!selectedItemId) {
-      return;
-    }
-
-    updateItems((currentItems) =>
-      moveBoardLayer(currentItems, selectedItemId, direction),
-    );
-  }
-
-  function startStickyEditing(itemId: string) {
-    setSelectedItemId(itemId);
-    setEditingStickyId(itemId);
-  }
-
-  function stopStickyEditing() {
-    setEditingStickyId(null);
-  }
-
+function ConnectingBoard() {
   return (
     <main className="app-shell">
-      <section className="board-frame">
-        <WhiteboardCanvas
-          background={background}
-          editingStickyId={editingStickyId}
-          items={items}
-          onMoveItem={moveItem}
-          onSelectItem={selectItem}
-          onStartStickyEditing={startStickyEditing}
-          onStickyTextChange={updateStickyText}
-          onStopStickyEditing={stopStickyEditing}
-          onTransformItem={transformItem}
-          selectedItemId={selectedItemId}
-        />
-
+      <div className="board-frame">
+        <div className="whiteboard whiteboard--grid" />
         <div className="board-frame__toolbar">
-          <Toolbar
-            background={background}
-            canMoveBackward={selectedIndex > 0}
-            canMoveForward={selectedIndex >= 0 && selectedIndex < items.length - 1}
-            onAddHeart={() => addSticker("heart")}
-            onAddImage={addUploadedImage}
-            onAddPin={addPin}
-            onAddStar={() => addSticker("star")}
-            onAddSticky={addStickyNote}
-            onAddTape={addTape}
-            onBackgroundChange={setBackground}
-            onDeleteSelected={deleteSelectedItem}
-            onMoveBackward={() => moveLayer("backward")}
-            onMoveForward={() => moveLayer("forward")}
-            onStickyColorChange={updateStickyColor}
-            onStickySizeChange={updateStickySize}
-            persistenceWarning={persistenceWarning}
-            selectedItem={selectedItem}
-          />
+          <div className="toolbar">
+            <div className="toolbar__notice" role="status">
+              Connecting to shared board...
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

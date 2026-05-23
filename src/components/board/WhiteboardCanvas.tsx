@@ -3,7 +3,12 @@ import type { Group as KonvaGroup } from "konva/lib/Group";
 import type { KonvaEventObject } from "konva/lib/Node";
 import { Layer, Stage } from "react-konva";
 import type { ItemTransform } from "../../lib/board-actions";
-import type { BoardBackground, BoardItem, StickyNoteItem } from "../../types";
+import type {
+  BoardBackground,
+  BoardItem,
+  RemoteCursor,
+  StickyNoteItem,
+} from "../../types";
 import { BOARD_HEIGHT, BOARD_WIDTH } from "../../types";
 import { BoardBackground as CanvasBoardBackground } from "./BoardBackground";
 import { BoardItemNode } from "./BoardItemNode";
@@ -14,12 +19,15 @@ type WhiteboardCanvasProps = {
   background: BoardBackground;
   editingStickyId: string | null;
   items: BoardItem[];
+  onCursorLeave: () => void;
+  onCursorMove: (cursor: { x: number; y: number }) => void;
   onMoveItem: (itemId: string, x: number, y: number) => void;
   onSelectItem: (itemId: string | null) => void;
   onStartStickyEditing: (itemId: string) => void;
   onStickyTextChange: (text: string) => void;
   onStopStickyEditing: () => void;
   onTransformItem: (itemId: string, transform: ItemTransform) => void;
+  remoteCursors: RemoteCursor[];
   selectedItemId: string | null;
 };
 
@@ -27,12 +35,15 @@ export function WhiteboardCanvas({
   background,
   editingStickyId,
   items,
+  onCursorLeave,
+  onCursorMove,
   onMoveItem,
   onSelectItem,
   onStartStickyEditing,
   onStickyTextChange,
   onStopStickyEditing,
   onTransformItem,
+  remoteCursors,
   selectedItemId,
 }: WhiteboardCanvasProps) {
   const nodeMapRef = useRef<Record<string, KonvaGroup | null>>({});
@@ -59,6 +70,21 @@ export function WhiteboardCanvas({
     nodeMapRef.current[itemId] = node;
   }
 
+  function handleBoardPointerMove(
+    event: KonvaEventObject<MouseEvent | TouchEvent>,
+  ) {
+    const pointerPosition = event.target.getStage()?.getPointerPosition();
+
+    if (!pointerPosition) {
+      return;
+    }
+
+    onCursorMove({
+      x: pointerPosition.x,
+      y: pointerPosition.y,
+    });
+  }
+
   return (
     <div className={`whiteboard whiteboard--${background}`}>
       <Stage
@@ -66,7 +92,10 @@ export function WhiteboardCanvas({
         height={BOARD_HEIGHT}
         className="whiteboard__stage"
         onMouseDown={handleBoardPointerDown}
+        onMouseLeave={onCursorLeave}
+        onMouseMove={handleBoardPointerMove}
         onTouchStart={handleBoardPointerDown}
+        onTouchMove={handleBoardPointerMove}
       >
         <Layer>
           <CanvasBoardBackground />
@@ -98,6 +127,23 @@ export function WhiteboardCanvas({
         onChange={onStickyTextChange}
         onStopEditing={onStopStickyEditing}
       />
+
+      {remoteCursors.map((cursor) => (
+        <div
+          key={cursor.clientId}
+          className="presence-cursor"
+          style={{
+            left: cursor.x,
+            top: cursor.y,
+          }}
+        >
+          <span
+            className="presence-cursor__dot"
+            style={{ background: cursor.color }}
+          />
+          <span className="presence-cursor__label">{cursor.name}</span>
+        </div>
+      ))}
     </div>
   );
 }

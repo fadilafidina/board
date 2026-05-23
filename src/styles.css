@@ -114,6 +114,35 @@ button {
   transform-origin: center center;
 }
 
+.presence-cursor {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  transform: translate(10px, 10px);
+}
+
+.presence-cursor__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.presence-cursor__label {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(255, 252, 245, 0.96);
+  border: 1px solid rgba(126, 101, 75, 0.16);
+  box-shadow: 0 8px 18px rgba(82, 64, 44, 0.12);
+  color: #5c4a3e;
+  font-size: 0.8rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .board-frame__toolbar {
   position: absolute;
   left: 50%;

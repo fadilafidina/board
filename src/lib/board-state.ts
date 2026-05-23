@@ -4,6 +4,8 @@ import type {
   ImageItem,
   PinItem,
   StickerItem,
+  StickerKind,
+  StickyColor,
   StickyNoteItem,
   StickySize,
   TapeItem,
@@ -22,6 +24,48 @@ export const STORAGE_KEY = "fridgeboard-mvp-state";
 export type PersistedState = {
   background: BoardBackground;
   items: BoardItem[];
+};
+
+type CreateStickyOptions = {
+  color?: StickyColor;
+  rotation?: number;
+  size?: StickySize;
+  text?: string;
+  x?: number;
+  y?: number;
+};
+
+type CreatePinOptions = {
+  color?: string;
+  rotation?: number;
+  x?: number;
+  y?: number;
+};
+
+type CreateStickerOptions = {
+  color?: string;
+  height?: number;
+  rotation?: number;
+  width?: number;
+  x?: number;
+  y?: number;
+};
+
+type CreateTapeOptions = {
+  color?: string;
+  rotation?: number;
+  x?: number;
+  y?: number;
+};
+
+type CreateImageOptions = {
+  height: number;
+  name: string;
+  rotation?: number;
+  src: string;
+  width: number;
+  x?: number;
+  y?: number;
 };
 
 export function clamp(value: number, min: number, max: number) {
@@ -151,41 +195,99 @@ export function normalizeItem(
   return null;
 }
 
-export function createSeedItems(): BoardItem[] {
-  const starterSticky = getStickySizeDimensions("medium");
+export function createStickyNoteItem(options: CreateStickyOptions = {}) {
+  const size = options.size ?? "small";
+  const dimensions = getStickySizeDimensions(size);
 
+  return {
+    color: options.color ?? "butter",
+    height: dimensions.height,
+    id: crypto.randomUUID(),
+    rotation: options.rotation ?? -2,
+    size,
+    text: options.text ?? "",
+    type: "sticky-note",
+    width: dimensions.width,
+    x: options.x ?? 524,
+    y: options.y ?? 302,
+  } satisfies StickyNoteItem;
+}
+
+export function createPinItem(options: CreatePinOptions = {}) {
+  return {
+    color: options.color ?? "#c96f5c",
+    id: crypto.randomUUID(),
+    kind: "round",
+    rotation: options.rotation ?? 0,
+    type: "pin",
+    x: options.x ?? 584,
+    y: options.y ?? 266,
+  } satisfies PinItem;
+}
+
+export function createStickerItem(
+  kind: StickerKind,
+  options: CreateStickerOptions = {},
+) {
+  return {
+    color: options.color ?? (kind === "heart" ? "#d9868c" : "#efc068"),
+    height: options.height ?? STICKER_SIZE,
+    id: crypto.randomUUID(),
+    kind,
+    rotation: options.rotation ?? (kind === "heart" ? -8 : 8),
+    type: "sticker",
+    width: options.width ?? STICKER_SIZE,
+    x: options.x ?? 554,
+    y: options.y ?? 284,
+  } satisfies StickerItem;
+}
+
+export function createTapeItem(options: CreateTapeOptions = {}) {
+  return {
+    color: options.color ?? "rgba(244, 232, 202, 0.72)",
+    id: crypto.randomUUID(),
+    kind: "strip",
+    rotation: options.rotation ?? -9,
+    type: "tape",
+    x: options.x ?? 540,
+    y: options.y ?? 306,
+  } satisfies TapeItem;
+}
+
+export function createImageItem(options: CreateImageOptions) {
+  return {
+    height: options.height,
+    id: crypto.randomUUID(),
+    name: options.name,
+    rotation: options.rotation ?? -2,
+    src: options.src,
+    type: "image",
+    width: options.width,
+    x: options.x ?? Math.round((BOARD_WIDTH - options.width) / 2),
+    y: options.y ?? Math.round((BOARD_HEIGHT - options.height) / 2),
+  } satisfies ImageItem;
+}
+
+export function createSeedItems(): BoardItem[] {
   return [
-    {
-      id: crypto.randomUUID(),
-      type: "sticky-note",
+    createStickyNoteItem({
+      color: "pale-cream",
+      rotation: -3,
+      size: "small",
+      text: "Pick up lemons and oat milk.",
       x: 450,
       y: 170,
-      ...starterSticky,
-      text: "Pick up lemons and oat milk.",
-      color: "pale-cream",
-      size: "medium",
-      rotation: -3,
-    } satisfies StickyNoteItem,
-    {
-      id: crypto.randomUUID(),
-      type: "pin",
+    }),
+    createPinItem({
       x: 606,
       y: 148,
-      kind: "round",
-      color: "#c96f5c",
-      rotation: 0,
-    } satisfies PinItem,
-    {
-      id: crypto.randomUUID(),
-      type: "sticker",
+    }),
+    createStickerItem("star", {
+      color: "#f0bf67",
+      rotation: 8,
       x: 800,
       y: 280,
-      kind: "star",
-      color: "#f0bf67",
-      width: STICKER_SIZE,
-      height: STICKER_SIZE,
-      rotation: 8,
-    } satisfies StickerItem,
+    }),
   ];
 }
 

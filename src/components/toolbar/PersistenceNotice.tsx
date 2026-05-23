@@ -1,15 +1,19 @@
 type PersistenceNoticeProps = {
-  message: string | null;
+  messages: string[];
 };
 
-export function PersistenceNotice({ message }: PersistenceNoticeProps) {
-  if (!message) {
+export function PersistenceNotice({ messages }: PersistenceNoticeProps) {
+  if (messages.length === 0) {
     return null;
   }
 
   return (
-    <div className="toolbar__notice" role="status">
-      {message}
-    </div>
+    <>
+      {messages.map((message) => (
+        <div key={message} className="toolbar__notice" role="status">
+          {message}
+        </div>
+      ))}
+    </>
   );
 }
