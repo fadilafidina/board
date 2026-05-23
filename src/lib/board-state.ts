@@ -124,6 +124,9 @@ export function normalizeItem(
       color:
         item.color === "pale-cream" ||
         item.color === "butter" ||
+        item.color === "pastel-blue" ||
+        item.color === "pastel-green" ||
+        item.color === "pastel-pink" ||
         item.color === "soft-beige"
           ? item.color
           : "butter",

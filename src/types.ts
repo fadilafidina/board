@@ -9,7 +9,13 @@ export const TAPE_HEIGHT = 30;
 export const IMAGE_MAX_WIDTH = 320;
 export const IMAGE_MAX_HEIGHT = 240;
 
-export type StickyColor = "pale-cream" | "butter" | "soft-beige";
+export type StickyColor =
+  | "pale-cream"
+  | "butter"
+  | "soft-beige"
+  | "pastel-blue"
+  | "pastel-green"
+  | "pastel-pink";
 export type StickerKind = "star" | "heart";
 export type StickySize = "small" | "medium" | "large";
 

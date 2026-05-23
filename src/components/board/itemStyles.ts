@@ -11,6 +11,24 @@ export const stickyPalette = {
     fold: "#edd37d",
     text: "#58452f",
   },
+  "pastel-blue": {
+    fill: "#d8e7f5",
+    edge: "#adc7df",
+    fold: "#c8dcf0",
+    text: "#445567",
+  },
+  "pastel-green": {
+    fill: "#dcecd8",
+    edge: "#b4cfab",
+    fold: "#d0e5ca",
+    text: "#485c47",
+  },
+  "pastel-pink": {
+    fill: "#f2d9e4",
+    edge: "#dbb2c4",
+    fold: "#ebcada",
+    text: "#644953",
+  },
   "soft-beige": {
     fill: "#ead9c6",
     edge: "#ccb196",

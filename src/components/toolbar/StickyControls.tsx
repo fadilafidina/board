@@ -10,6 +10,9 @@ const stickyColors: Array<{ value: StickyColor; label: string }> = [
   { value: "pale-cream", label: "Cream" },
   { value: "butter", label: "Butter" },
   { value: "soft-beige", label: "Beige" },
+  { value: "pastel-blue", label: "Blue" },
+  { value: "pastel-green", label: "Green" },
+  { value: "pastel-pink", label: "Pink" },
 ];
 
 const stickySizes: Array<{ value: StickySize; label: string }> = [

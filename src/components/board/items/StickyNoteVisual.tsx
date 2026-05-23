@@ -23,7 +23,7 @@ export function StickyNoteVisual({
       <Rect
         width={item.width}
         height={item.height}
-        cornerRadius={10}
+        cornerRadius={6}
         fill={palette.fill}
         stroke={selectionTone}
         strokeWidth={isSelected ? 3 : 1.6}

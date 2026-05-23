@@ -9,8 +9,14 @@ export function ImageUploadButton({ onAddImage }: ImageUploadButtonProps) {
 
   return (
     <>
-      <button type="button" onClick={() => fileInputRef.current?.click()}>
-        Upload image
+      <button
+        type="button"
+        className="toolbar__utility-button"
+        onClick={() => fileInputRef.current?.click()}
+        aria-label="Upload image"
+        title="Upload image"
+      >
+        📷
       </button>
       <input
         ref={fileInputRef}
