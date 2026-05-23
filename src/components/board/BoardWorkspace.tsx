@@ -7,7 +7,6 @@ import type {
   BoardParticipant,
   RemoteCursor,
   StickyColor,
-  StickySize,
 } from "../../types";
 import { PresenceStrip } from "./PresenceStrip";
 
@@ -38,7 +37,6 @@ type BoardWorkspaceProps = {
   onSelectItem: (itemId: string | null) => void;
   onStartStickyEditing: (itemId: string) => void;
   onStickyColorChange: (color: StickyColor) => void;
-  onStickySizeChange: (size: StickySize) => void;
   onStickyTextChange: (text: string) => void;
   onStopStickyEditing: () => void;
   onTransformItem: (itemId: string, transform: ItemTransform) => void;
@@ -75,7 +73,6 @@ export function BoardWorkspace({
   onSelectItem,
   onStartStickyEditing,
   onStickyColorChange,
-  onStickySizeChange,
   onStickyTextChange,
   onStopStickyEditing,
   onTransformItem,
@@ -140,7 +137,6 @@ export function BoardWorkspace({
             onMoveBackward={onMoveBackward}
             onMoveForward={onMoveForward}
             onStickyColorChange={onStickyColorChange}
-            onStickySizeChange={onStickySizeChange}
             persistenceWarning={persistenceWarning}
             selectedItem={selectedItem}
             statusMessage={statusMessage}

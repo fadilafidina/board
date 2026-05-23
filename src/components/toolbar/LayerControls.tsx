@@ -23,7 +23,9 @@ export function LayerControls({
         aria-label="Layer up"
         title="Layer up"
       >
-        ↑
+        <span className="toolbar__icon-center" aria-hidden="true">
+          ↑
+        </span>
       </button>
       <button
         type="button"
@@ -33,7 +35,9 @@ export function LayerControls({
         aria-label="Layer down"
         title="Layer down"
       >
-        ↓
+        <span className="toolbar__icon-center" aria-hidden="true">
+          ↓
+        </span>
       </button>
     </>
   );

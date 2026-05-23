@@ -16,7 +16,9 @@ export function ImageUploadButton({ onAddImage }: ImageUploadButtonProps) {
         aria-label="Upload image"
         title="Upload image"
       >
-        📷
+        <span className="toolbar__icon-center" aria-hidden="true">
+          📷
+        </span>
       </button>
       <input
         ref={fileInputRef}

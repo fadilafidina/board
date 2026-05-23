@@ -18,7 +18,6 @@ import {
   transformBoardItem,
   type ItemTransform,
   updateBoardStickyColor,
-  updateBoardStickySize,
   updateBoardStickyText,
 } from "./lib/board-actions";
 import {
@@ -48,7 +47,6 @@ import type {
   BoardParticipant,
   RemoteCursor,
   StickyColor,
-  StickySize,
 } from "./types";
 
 function toLiveblocksItems(items: BoardItem[]) {
@@ -73,7 +71,6 @@ type BoardControls = {
   onSelectItem: (itemId: string | null) => void;
   onStartStickyEditing: (itemId: string) => void;
   onStickyColorChange: (color: StickyColor) => void;
-  onStickySizeChange: (size: StickySize) => void;
   onStickyTextChange: (text: string) => void;
   onStopStickyEditing: () => void;
   onTransformItem: (itemId: string, transform: ItemTransform) => void;
@@ -546,13 +543,6 @@ function useBoardControls({
       }
 
       commitItems(updateBoardStickyColor(items, selectedItemId, color));
-    },
-    onStickySizeChange: (size) => {
-      if (!selectedItemId) {
-        return;
-      }
-
-      commitItems(updateBoardStickySize(items, selectedItemId, size));
     },
     onStickyTextChange: (text) => {
       if (!editingStickyId) {

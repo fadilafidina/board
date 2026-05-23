@@ -54,6 +54,17 @@ export function BoardItemNode({
     }
   }
 
+  function handleTap(event: KonvaEventObject<Event>) {
+    event.cancelBubble = true;
+
+    if (item.type === "sticky-note" && isSelected) {
+      onStartStickyEditing(item.id);
+      return;
+    }
+
+    onSelect(item.id);
+  }
+
   function handleDragStart() {
     setCursor("grabbing");
     onSelect(item.id);
@@ -104,13 +115,17 @@ export function BoardItemNode({
       rotation={item.rotation ?? 0}
       draggable={!isEditing}
       onDblClick={handleDoubleClick}
+      onDblTap={handleDoubleClick}
       onDragEnd={handleDragEnd}
       onDragMove={handleDragMove}
       onDragStart={handleDragStart}
       onMouseDown={handlePointerDown}
       onMouseEnter={() => setCursor("grab")}
       onMouseLeave={() => setCursor("default")}
-      onTouchStart={handlePointerDown}
+      onTap={handleTap}
+      onTouchStart={(event) => {
+        event.cancelBubble = true;
+      }}
       onTransformEnd={handleTransformEnd}
     >
       {item.type === "sticky-note" ? (

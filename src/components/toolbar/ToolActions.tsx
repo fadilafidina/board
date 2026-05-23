@@ -36,7 +36,7 @@ function ObjectToolButton({
       aria-label={ariaLabel}
       title={ariaLabel}
     >
-      {children}
+      <span className="toolbar__icon-center">{children}</span>
     </button>
   );
 }
@@ -131,7 +131,9 @@ export function ToolActions({
         aria-label="Delete selected item"
         title="Delete selected item"
       >
-        🗑️
+        <span className="toolbar__icon-center" aria-hidden="true">
+          🗑️
+        </span>
       </button>
     </div>
   );

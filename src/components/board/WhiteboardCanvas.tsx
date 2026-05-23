@@ -121,6 +121,22 @@ export function WhiteboardCanvas({
     });
   }
 
+  function handleItemMovePreview(
+    itemId: string,
+    x: number,
+    y: number,
+    pointer: { x: number; y: number } | null,
+  ) {
+    if (usePresenceCursor && pointer) {
+      setSelfCursorPosition({
+        x: pointer.x,
+        y: pointer.y,
+      });
+    }
+
+    onMovePreview?.(itemId, x, y, pointer);
+  }
+
   return (
     <div
       className={`whiteboard whiteboard--${background}${
@@ -150,7 +166,7 @@ export function WhiteboardCanvas({
               isEditing={editingStickyId === item.id}
               isSelected={selectedItemId === item.id}
               onMove={onMoveItem}
-              onMovePreview={onMovePreview}
+              onMovePreview={handleItemMovePreview}
               onSelect={onSelectItem}
               onStartStickyEditing={onStartStickyEditing}
               onTransform={onTransformItem}

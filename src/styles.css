@@ -250,12 +250,22 @@ button {
 }
 
 .toolbar__object-tool {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 48px;
   height: 48px;
   min-width: 48px;
   padding: 0;
+}
+
+.toolbar__icon-center {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  line-height: 1;
 }
 
 .toolbar__mini-sticky {
@@ -277,7 +287,6 @@ button {
 .toolbar__mini-pin {
   width: 21px;
   height: 25px;
-  transform: translateY(1px);
 }
 
 .toolbar__mini-sticker {
@@ -302,12 +311,13 @@ button {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
     0 2px 5px rgba(92, 71, 47, 0.08);
-  transform: translateX(-2px) rotate(-12deg);
+  transform: rotate(-12deg);
 }
 
 .toolbar__utility-button {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 44px;
   height: 44px;
   padding: 0;
@@ -338,10 +348,8 @@ button {
 }
 
 .toolbar__sticky-controls {
-  grid-auto-flow: column;
   align-items: center;
-  min-width: 240px;
-  gap: 12px;
+  min-width: 220px;
 }
 
 .toolbar__palette,
@@ -352,7 +360,8 @@ button {
 }
 
 .toolbar__palette {
-  padding-right: 4px;
+  gap: 10px;
+  padding-right: 0;
 }
 
 .toolbar__swatch {
@@ -387,15 +396,9 @@ button {
   background: #f2d9e4;
 }
 
-.toolbar__sizes button,
 .toolbar__swatch.is-active {
   border-color: #8b6850;
   box-shadow: 0 0 0 2px rgba(139, 104, 80, 0.12);
-}
-
-.toolbar__sizes button {
-  min-width: 38px;
-  padding: 8px 10px;
 }
 
 .toolbar__file-input {
@@ -417,5 +420,70 @@ button {
 
   .board-frame {
     margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 12px;
+  }
+
+  .presence-strip {
+    top: 12px;
+    left: 12px;
+    max-width: calc(100% - 24px);
+  }
+
+  .presence-pill {
+    gap: 6px;
+    padding: 6px 10px;
+  }
+
+  .presence-pill__name,
+  .presence-pill__name-input,
+  .presence-pill__status {
+    font-size: 0.76rem;
+  }
+
+  .board-frame__toolbar {
+    bottom: 12px;
+    width: calc(100% - 24px);
+  }
+
+  .toolbar {
+    gap: 10px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .toolbar__actions {
+    gap: 8px;
+  }
+
+  .toolbar__object-tool,
+  .toolbar__utility-button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+
+  .toolbar__background {
+    width: 100%;
+  }
+
+  .toolbar__background select {
+    width: 100%;
+  }
+
+  .toolbar__sticky-controls {
+    min-width: 0;
+  }
+
+  .toolbar__palette {
+    flex-wrap: wrap;
+  }
+
+  .toolbar__notice {
+    font-size: 0.8rem;
   }
 }

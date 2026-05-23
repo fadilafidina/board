@@ -1,8 +1,7 @@
-import type { StickyColor, StickyNoteItem, StickySize } from "../../types";
+import type { StickyColor, StickyNoteItem } from "../../types";
 
 type StickyControlsProps = {
   onStickyColorChange: (color: StickyColor) => void;
-  onStickySizeChange: (size: StickySize) => void;
   sticky: StickyNoteItem | undefined;
 };
 
@@ -15,15 +14,8 @@ const stickyColors: Array<{ value: StickyColor; label: string }> = [
   { value: "pastel-pink", label: "Pink" },
 ];
 
-const stickySizes: Array<{ value: StickySize; label: string }> = [
-  { value: "small", label: "S" },
-  { value: "medium", label: "M" },
-  { value: "large", label: "L" },
-];
-
 export function StickyControls({
   onStickyColorChange,
-  onStickySizeChange,
   sticky,
 }: StickyControlsProps) {
   if (!sticky) {
@@ -43,19 +35,6 @@ export function StickyControls({
             onClick={() => onStickyColorChange(option.value)}
             aria-label={`Use ${option.label} note`}
           />
-        ))}
-      </div>
-
-      <div className="toolbar__sizes" aria-label="Sticky note sizes">
-        {stickySizes.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            className={sticky.size === option.value ? "is-active" : ""}
-            onClick={() => onStickySizeChange(option.value)}
-          >
-            {option.label}
-          </button>
         ))}
       </div>
     </div>

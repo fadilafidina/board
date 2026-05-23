@@ -3,7 +3,7 @@ import type { StickerItem } from "../../../types";
 import { withSelectionShadow } from "../itemStyles";
 
 const heartPath =
-  "M58 98 C24 76 10 48 22 24 C32 8 54 10 62 30 C70 10 92 8 102 24 C114 48 100 76 66 98 L58 106 L50 98 Z";
+  "M52 102 C20 80 8 56 8 34 C8 18 20 8 34 8 C44 8 52 14 58 24 C64 14 72 8 82 8 C96 8 108 18 108 34 C108 56 96 80 64 102 L58 108 L52 102 Z";
 
 type StickerVisualProps = {
   isSelected: boolean;
@@ -33,10 +33,10 @@ export function StickerVisual({ isSelected, item }: StickerVisualProps) {
   }
 
   const heartBounds = {
-    width: 104,
-    height: 106,
+    width: 108,
+    height: 108,
   };
-  const heartPadding = 14;
+  const heartPadding = 12;
   const heartScale = Math.min(
     (item.width - heartPadding * 2) / heartBounds.width,
     (item.height - heartPadding * 2) / heartBounds.height,
@@ -48,7 +48,7 @@ export function StickerVisual({ isSelected, item }: StickerVisualProps) {
     <Path
       data={heartPath}
       x={(item.width - heartWidth) / 2}
-      y={(item.height - heartHeight) / 2 - 3}
+      y={(item.height - heartHeight) / 2 - 1}
       scaleX={heartScale}
       scaleY={heartScale}
       fill={item.color}

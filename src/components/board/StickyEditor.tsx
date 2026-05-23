@@ -16,11 +16,19 @@ export function StickyEditor({
 
   useEffect(() => {
     if (sticky && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.setSelectionRange(
-        textareaRef.current.value.length,
-        textareaRef.current.value.length,
-      );
+      const focusEditor = () => {
+        textareaRef.current?.focus();
+
+        if (textareaRef.current) {
+          textareaRef.current.setSelectionRange(
+            textareaRef.current.value.length,
+            textareaRef.current.value.length,
+          );
+        }
+      };
+
+      focusEditor();
+      window.requestAnimationFrame(focusEditor);
     }
   }, [sticky]);
 
@@ -30,9 +38,13 @@ export function StickyEditor({
 
   return (
     <textarea
+      autoFocus
       ref={textareaRef}
       className="sticky-editor"
       value={sticky.text}
+      autoCapitalize="sentences"
+      autoCorrect="on"
+      enterKeyHint="done"
       onBlur={onStopEditing}
       onChange={(event) => onChange(event.target.value)}
       onKeyDown={(event) => {
@@ -42,6 +54,8 @@ export function StickyEditor({
         }
       }}
       onMouseDown={(event) => event.stopPropagation()}
+      onTouchStart={(event) => event.stopPropagation()}
+      spellCheck
       style={{
         left: sticky.x + 16,
         top: sticky.y + 18,

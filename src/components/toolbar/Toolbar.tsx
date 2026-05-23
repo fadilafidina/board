@@ -2,7 +2,6 @@ import type {
   BoardBackground,
   BoardItem,
   StickyColor,
-  StickySize,
 } from "../../types";
 import { BackgroundSelector } from "./BackgroundSelector";
 import { PersistenceNotice } from "./PersistenceNotice";
@@ -24,7 +23,6 @@ type ToolbarProps = {
   onMoveBackward: () => void;
   onMoveForward: () => void;
   onStickyColorChange: (color: StickyColor) => void;
-  onStickySizeChange: (size: StickySize) => void;
   persistenceWarning: string | null;
   selectedItem: BoardItem | undefined;
   statusMessage: string | null;
@@ -45,7 +43,6 @@ export function Toolbar({
   onMoveBackward,
   onMoveForward,
   onStickyColorChange,
-  onStickySizeChange,
   persistenceWarning,
   selectedItem,
   statusMessage,
@@ -78,7 +75,6 @@ export function Toolbar({
       <StickyControls
         sticky={selectedSticky}
         onStickyColorChange={onStickyColorChange}
-        onStickySizeChange={onStickySizeChange}
       />
 
       <PersistenceNotice
