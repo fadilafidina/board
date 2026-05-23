@@ -1,4 +1,4 @@
-export type BoardBackground = "cream" | "soft-white" | "warm-gray";
+export type BoardBackground = "grid" | "dots" | "plain";
 export const BOARD_WIDTH = 1200;
 export const BOARD_HEIGHT = 800;
 export const PIN_WIDTH = 32;
@@ -6,9 +6,12 @@ export const PIN_HEIGHT = 52;
 export const STICKER_SIZE = 92;
 export const TAPE_WIDTH = 120;
 export const TAPE_HEIGHT = 30;
+export const IMAGE_MAX_WIDTH = 320;
+export const IMAGE_MAX_HEIGHT = 240;
 
 export type StickyColor = "pale-cream" | "butter" | "soft-beige";
 export type StickerKind = "star" | "heart";
+export type StickySize = "small" | "medium" | "large";
 
 type BaseItem = {
   id: string;
@@ -21,6 +24,7 @@ export type StickyNoteItem = BaseItem & {
   type: "sticky-note";
   text: string;
   color: StickyColor;
+  size: StickySize;
   width: number;
   height: number;
 };
@@ -35,6 +39,8 @@ export type StickerItem = BaseItem & {
   type: "sticker";
   kind: StickerKind;
   color: string;
+  width: number;
+  height: number;
 };
 
 export type TapeItem = BaseItem & {
@@ -43,7 +49,20 @@ export type TapeItem = BaseItem & {
   color: string;
 };
 
-export type BoardItem = StickyNoteItem | PinItem | StickerItem | TapeItem;
+export type ImageItem = BaseItem & {
+  type: "image";
+  src: string;
+  width: number;
+  height: number;
+  name: string;
+};
+
+export type BoardItem =
+  | StickyNoteItem
+  | PinItem
+  | StickerItem
+  | TapeItem
+  | ImageItem;
 
 export function getItemSize(item: BoardItem) {
   switch (item.type) {
@@ -52,8 +71,21 @@ export function getItemSize(item: BoardItem) {
     case "pin":
       return { width: PIN_WIDTH, height: PIN_HEIGHT };
     case "sticker":
-      return { width: STICKER_SIZE, height: STICKER_SIZE };
+      return { width: item.width, height: item.height };
     case "tape":
       return { width: TAPE_WIDTH, height: TAPE_HEIGHT };
+    case "image":
+      return { width: item.width, height: item.height };
+  }
+}
+
+export function getStickySizeDimensions(size: StickySize) {
+  switch (size) {
+    case "small":
+      return { width: 180, height: 145 };
+    case "medium":
+      return { width: 220, height: 180 };
+    case "large":
+      return { width: 280, height: 220 };
   }
 }

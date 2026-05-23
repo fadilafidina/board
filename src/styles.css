@@ -65,26 +65,53 @@ button {
   overflow: hidden;
 }
 
-.whiteboard--cream {
+.whiteboard--grid {
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.42), transparent 28%),
-    linear-gradient(180deg, #f5ecd8 0%, #efe2c6 100%);
+    linear-gradient(rgba(161, 186, 215, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(161, 186, 215, 0.16) 1px, transparent 1px),
+    linear-gradient(180deg, #fffefb 0%, #f4efe5 100%);
+  background-size:
+    28px 28px,
+    28px 28px,
+    100% 100%;
 }
 
-.whiteboard--soft-white {
+.whiteboard--dots {
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.46), transparent 28%),
-    linear-gradient(180deg, #f8f5ee 0%, #eee9de 100%);
+    radial-gradient(circle, rgba(177, 168, 156, 0.35) 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #fffdf8 0%, #efe6d9 100%);
+  background-size:
+    22px 22px,
+    100% 100%;
 }
 
-.whiteboard--warm-gray {
+.whiteboard--plain {
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.36), transparent 28%),
-    linear-gradient(180deg, #ece6dd 0%, #ddd3c6 100%);
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.45), transparent 30%),
+    linear-gradient(180deg, #f7efdf 0%, #eadfc9 100%);
 }
 
 .whiteboard__stage {
   display: block;
+}
+
+.sticky-editor {
+  position: absolute;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #564635;
+  resize: none;
+  outline: none;
+  line-height: 1.35;
+  font-size: 21px;
+  font-family:
+    "Avenir Next",
+    "Segoe UI",
+    sans-serif;
+  overflow: hidden;
+  transform-origin: center center;
 }
 
 .board-frame__toolbar {
@@ -98,6 +125,7 @@ button {
 .toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 14px;
   padding: 14px 18px;
   border-radius: 24px;
@@ -115,8 +143,7 @@ button {
 }
 
 .toolbar button,
-.toolbar select,
-.toolbar textarea {
+.toolbar select {
   border: 1px solid rgba(126, 101, 75, 0.16);
   background: #fffdf9;
   border-radius: 16px;
@@ -137,7 +164,7 @@ button {
 }
 
 .toolbar__background,
-.toolbar__editor {
+.toolbar__sticky-controls {
   display: grid;
   gap: 6px;
   color: #6d5c4e;
@@ -149,14 +176,57 @@ button {
   padding: 10px 12px;
 }
 
-.toolbar__editor {
-  min-width: 220px;
+.toolbar__sticky-controls {
+  grid-auto-flow: column;
+  align-items: center;
+  min-width: 240px;
+  gap: 12px;
 }
 
-.toolbar__editor textarea {
-  resize: none;
-  min-height: 66px;
-  padding: 10px 12px;
+.toolbar__palette,
+.toolbar__sizes {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar__palette {
+  padding-right: 4px;
+}
+
+.toolbar__swatch {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.toolbar__swatch--pale-cream {
+  background: #f8f1dd;
+}
+
+.toolbar__swatch--butter {
+  background: #f5e198;
+}
+
+.toolbar__swatch--soft-beige {
+  background: #ead9c6;
+}
+
+.toolbar__sizes button,
+.toolbar__swatch.is-active {
+  border-color: #8b6850;
+  box-shadow: 0 0 0 2px rgba(139, 104, 80, 0.12);
+}
+
+.toolbar__sizes button {
+  min-width: 38px;
+  padding: 8px 10px;
+}
+
+.toolbar__file-input {
+  display: none;
 }
 
 @media (max-width: 1260px) {

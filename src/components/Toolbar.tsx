@@ -1,36 +1,67 @@
-import type { BoardBackground, BoardItem } from "../types";
+import { useRef } from "react";
+import type {
+  BoardBackground,
+  BoardItem,
+  StickyColor,
+  StickySize,
+} from "../types";
 
 type ToolbarProps = {
   background: BoardBackground;
-  onBackgroundChange: (background: BoardBackground) => void;
-  onAddSticky: () => void;
+  canMoveBackward: boolean;
+  canMoveForward: boolean;
+  onAddHeart: () => void;
+  onAddImage: (file: File) => void | Promise<void>;
   onAddPin: () => void;
   onAddStar: () => void;
-  onAddHeart: () => void;
+  onAddSticky: () => void;
   onAddTape: () => void;
+  onBackgroundChange: (background: BoardBackground) => void;
   onDeleteSelected: () => void;
+  onMoveBackward: () => void;
+  onMoveForward: () => void;
+  onStickyColorChange: (color: StickyColor) => void;
+  onStickySizeChange: (size: StickySize) => void;
   selectedItem: BoardItem | undefined;
-  onStickyTextChange: (text: string) => void;
 };
 
 const backgrounds: Array<{ value: BoardBackground; label: string }> = [
-  { value: "cream", label: "Cream" },
-  { value: "soft-white", label: "Soft White" },
-  { value: "warm-gray", label: "Warm Gray" },
+  { value: "grid", label: "Grid" },
+  { value: "dots", label: "Dots" },
+  { value: "plain", label: "Plain" },
+];
+
+const stickyColors: Array<{ value: StickyColor; label: string }> = [
+  { value: "pale-cream", label: "Cream" },
+  { value: "butter", label: "Butter" },
+  { value: "soft-beige", label: "Beige" },
+];
+
+const stickySizes: Array<{ value: StickySize; label: string }> = [
+  { value: "small", label: "S" },
+  { value: "medium", label: "M" },
+  { value: "large", label: "L" },
 ];
 
 export function Toolbar({
   background,
-  onBackgroundChange,
-  onAddSticky,
+  canMoveBackward,
+  canMoveForward,
+  onAddHeart,
+  onAddImage,
   onAddPin,
   onAddStar,
-  onAddHeart,
+  onAddSticky,
   onAddTape,
+  onBackgroundChange,
   onDeleteSelected,
+  onMoveBackward,
+  onMoveForward,
+  onStickyColorChange,
+  onStickySizeChange,
   selectedItem,
-  onStickyTextChange,
 }: ToolbarProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const selectedSticky =
     selectedItem?.type === "sticky-note" ? selectedItem : undefined;
 
@@ -52,6 +83,23 @@ export function Toolbar({
         <button type="button" onClick={onAddTape}>
           Add tape
         </button>
+        <button type="button" onClick={() => fileInputRef.current?.click()}>
+          Upload image
+        </button>
+        <button
+          type="button"
+          onClick={onMoveBackward}
+          disabled={!selectedItem || !canMoveBackward}
+        >
+          Layer down
+        </button>
+        <button
+          type="button"
+          onClick={onMoveForward}
+          disabled={!selectedItem || !canMoveForward}
+        >
+          Layer up
+        </button>
         <button
           type="button"
           onClick={onDeleteSelected}
@@ -61,6 +109,23 @@ export function Toolbar({
           Delete
         </button>
       </div>
+
+      <input
+        ref={fileInputRef}
+        className="toolbar__file-input"
+        type="file"
+        accept="image/*"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+
+          if (!file) {
+            return;
+          }
+
+          void onAddImage(file);
+          event.target.value = "";
+        }}
+      />
 
       <label className="toolbar__background">
         <span>Board</span>
@@ -79,15 +144,34 @@ export function Toolbar({
       </label>
 
       {selectedSticky ? (
-        <label className="toolbar__editor">
-          <span>Note text</span>
-          <textarea
-            rows={2}
-            value={selectedSticky.text}
-            onChange={(event) => onStickyTextChange(event.target.value)}
-            placeholder="Write a note..."
-          />
-        </label>
+        <div className="toolbar__sticky-controls">
+          <div className="toolbar__palette" aria-label="Sticky note colors">
+            {stickyColors.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`toolbar__swatch toolbar__swatch--${option.value}${
+                  selectedSticky.color === option.value ? " is-active" : ""
+                }`}
+                onClick={() => onStickyColorChange(option.value)}
+                aria-label={`Use ${option.label} note`}
+              />
+            ))}
+          </div>
+
+          <div className="toolbar__sizes" aria-label="Sticky note sizes">
+            {stickySizes.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={selectedSticky.size === option.value ? "is-active" : ""}
+                onClick={() => onStickySizeChange(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
       ) : null}
     </div>
   );
