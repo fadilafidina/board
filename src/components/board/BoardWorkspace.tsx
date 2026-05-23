@@ -39,8 +39,10 @@ type BoardWorkspaceProps = {
   persistenceWarning: string | null;
   remoteCursors?: RemoteCursor[];
   selectedItemId: string | null;
+  selfCursor?: RemoteCursor | null;
   statusMessage: string | null;
   userParticipant?: BoardParticipant | null;
+  usePresenceCursor?: boolean;
 };
 
 export function BoardWorkspace({
@@ -71,8 +73,10 @@ export function BoardWorkspace({
   persistenceWarning,
   remoteCursors = [],
   selectedItemId,
+  selfCursor = null,
   statusMessage,
   userParticipant = null,
+  usePresenceCursor = false,
 }: BoardWorkspaceProps) {
   const selectedIndex = items.findIndex((item) => item.id === selectedItemId);
   const selectedItem =
@@ -99,7 +103,9 @@ export function BoardWorkspace({
           onStopStickyEditing={onStopStickyEditing}
           onTransformItem={onTransformItem}
           remoteCursors={remoteCursors}
+          selfCursor={selfCursor}
           selectedItemId={selectedItemId}
+          usePresenceCursor={usePresenceCursor}
         />
 
         <div className="board-frame__toolbar">

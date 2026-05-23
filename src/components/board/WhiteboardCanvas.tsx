@@ -28,7 +28,9 @@ type WhiteboardCanvasProps = {
   onStopStickyEditing: () => void;
   onTransformItem: (itemId: string, transform: ItemTransform) => void;
   remoteCursors: RemoteCursor[];
+  selfCursor: RemoteCursor | null;
   selectedItemId: string | null;
+  usePresenceCursor: boolean;
 };
 
 export function WhiteboardCanvas({
@@ -44,7 +46,9 @@ export function WhiteboardCanvas({
   onStopStickyEditing,
   onTransformItem,
   remoteCursors,
+  selfCursor,
   selectedItemId,
+  usePresenceCursor,
 }: WhiteboardCanvasProps) {
   const nodeMapRef = useRef<Record<string, KonvaGroup | null>>({});
   const selectedItem = items.find((item) => item.id === selectedItemId);
@@ -54,6 +58,9 @@ export function WhiteboardCanvas({
     selectedItem.id === editingStickyId
       ? (selectedItem as StickyNoteItem)
       : null;
+  const visibleCursors = selfCursor
+    ? [selfCursor, ...remoteCursors]
+    : remoteCursors;
 
   function handleBoardPointerDown(
     event: KonvaEventObject<MouseEvent | TouchEvent>,
@@ -86,7 +93,11 @@ export function WhiteboardCanvas({
   }
 
   return (
-    <div className={`whiteboard whiteboard--${background}`}>
+    <div
+      className={`whiteboard whiteboard--${background}${
+        usePresenceCursor ? " whiteboard--presence-cursor" : ""
+      }`}
+    >
       <Stage
         width={BOARD_WIDTH}
         height={BOARD_HEIGHT}
@@ -128,7 +139,7 @@ export function WhiteboardCanvas({
         onStopEditing={onStopStickyEditing}
       />
 
-      {remoteCursors.map((cursor) => (
+      {visibleCursors.map((cursor) => (
         <div
           key={cursor.clientId}
           className="presence-cursor"
@@ -138,8 +149,8 @@ export function WhiteboardCanvas({
           }}
         >
           <span
-            className="presence-cursor__dot"
-            style={{ background: cursor.color }}
+            className="presence-cursor__pointer"
+            style={{ color: cursor.color }}
           />
           <span className="presence-cursor__label">{cursor.name}</span>
         </div>

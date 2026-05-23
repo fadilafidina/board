@@ -138,6 +138,10 @@ button {
   display: block;
 }
 
+.whiteboard--presence-cursor {
+  cursor: none;
+}
+
 .sticky-editor {
   position: absolute;
   z-index: 2;
@@ -162,19 +166,22 @@ button {
   z-index: 3;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   pointer-events: none;
-  transform: translate(10px, 10px);
+  transform: translate(0, 0);
 }
 
-.presence-cursor__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+.presence-cursor__pointer {
+  width: 0;
+  height: 0;
+  border-top: 14px solid currentColor;
+  border-right: 10px solid transparent;
+  filter: drop-shadow(0 2px 3px rgba(76, 57, 39, 0.2));
+  transform: rotate(-18deg);
 }
 
 .presence-cursor__label {
+  margin-top: 12px;
   padding: 5px 9px;
   border-radius: 999px;
   background: rgba(255, 252, 245, 0.96);

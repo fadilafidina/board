@@ -199,6 +199,7 @@ function LocalBoard({ initialBackground, initialItems }: LocalBoardProps) {
       onCursorMove={() => {}}
       participants={[]}
       remoteCursors={[]}
+      selfCursor={null}
       userParticipant={null}
     />
   );
@@ -315,6 +316,19 @@ function LiveblocksBoard() {
       }) satisfies BoardParticipant,
     [editingStickyId, myPresence.color, myPresence.name, selectedItemId],
   );
+  const selfCursor = useMemo(
+    () =>
+      myPresence.cursor
+        ? ({
+            clientId: "self-cursor",
+            color: myPresence.color,
+            name: myPresence.name,
+            x: myPresence.cursor.x,
+            y: myPresence.cursor.y,
+          } satisfies RemoteCursor)
+        : null,
+    [myPresence.color, myPresence.cursor, myPresence.name],
+  );
 
   const cursorThrottleRef = useRef(0);
 
@@ -350,10 +364,12 @@ function LiveblocksBoard() {
       }}
       participants={remoteParticipants}
       remoteCursors={remoteCursors}
+      selfCursor={selfCursor}
       statusMessage={`${others.length + 1} ${
         others.length === 0 ? "person" : "people"
       } on this board. Share this URL to collaborate live.`}
       userParticipant={userParticipant}
+      usePresenceCursor
     />
   );
 }
