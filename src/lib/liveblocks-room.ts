@@ -15,6 +15,11 @@ export type GuestProfile = {
   name: string;
 };
 
+export function normalizeGuestName(name: string) {
+  const nextName = name.trim().replace(/\s+/g, " ").slice(0, 24);
+  return nextName || null;
+}
+
 export function getLiveblocksPublicKey() {
   return import.meta.env.VITE_LIVEBLOCKS_PUBLIC_KEY?.trim() ?? "";
 }
@@ -60,4 +65,16 @@ export function getGuestProfile() {
 
   window.localStorage.setItem(GUEST_PROFILE_KEY, JSON.stringify(profile));
   return profile;
+}
+
+export function saveGuestProfileName(name: string) {
+  const currentProfile = getGuestProfile();
+  const nextName = normalizeGuestName(name) ?? currentProfile.name;
+  const nextProfile = {
+    ...currentProfile,
+    name: nextName,
+  } satisfies GuestProfile;
+
+  window.localStorage.setItem(GUEST_PROFILE_KEY, JSON.stringify(nextProfile));
+  return nextProfile;
 }

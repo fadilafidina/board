@@ -1,14 +1,23 @@
+import { useEffect, useState } from "react";
 import type { BoardParticipant } from "../../types";
 
 type PresenceStripProps = {
   currentUser: BoardParticipant | null;
+  onRenameCurrentUser?: (name: string) => void;
   participants: BoardParticipant[];
 };
 
 export function PresenceStrip({
   currentUser,
+  onRenameCurrentUser,
   participants,
 }: PresenceStripProps) {
+  const [draftName, setDraftName] = useState(currentUser?.name ?? "");
+
+  useEffect(() => {
+    setDraftName(currentUser?.name ?? "");
+  }, [currentUser?.name]);
+
   if (!currentUser && participants.length === 0) {
     return null;
   }
@@ -30,9 +39,28 @@ export function PresenceStrip({
               style={{ background: participant.color }}
               aria-hidden="true"
             />
-            <span className="presence-pill__name">
-              {isSelf ? "You" : participant.name}
-            </span>
+            {isSelf ? (
+              <input
+                aria-label="Your nickname"
+                className="presence-pill__name-input"
+                maxLength={24}
+                value={draftName}
+                onBlur={() => onRenameCurrentUser?.(draftName)}
+                onChange={(event) => setDraftName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.currentTarget.blur();
+                  }
+
+                  if (event.key === "Escape") {
+                    setDraftName(currentUser.name);
+                    event.currentTarget.blur();
+                  }
+                }}
+              />
+            ) : (
+              <span className="presence-pill__name">{participant.name}</span>
+            )}
             <span className="presence-pill__status">{status}</span>
           </div>
         );

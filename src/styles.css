@@ -89,6 +89,24 @@ button {
   line-height: 1;
 }
 
+.presence-pill__name-input {
+  min-width: 84px;
+  max-width: 136px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #4d4036;
+  font-size: 0.84rem;
+  line-height: 1;
+  outline: none;
+}
+
+.presence-pill__name-input:focus {
+  text-decoration: underline;
+  text-decoration-color: rgba(126, 101, 75, 0.45);
+  text-underline-offset: 3px;
+}
+
 .presence-pill__status {
   color: #8a7668;
   font-size: 0.75rem;

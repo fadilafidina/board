@@ -28,6 +28,7 @@ type BoardWorkspaceProps = {
   onMoveBackward: () => void;
   onMoveForward: () => void;
   onMoveItem: (itemId: string, x: number, y: number) => void;
+  onRenameCurrentUser?: (name: string) => void;
   onSelectItem: (itemId: string | null) => void;
   onStartStickyEditing: (itemId: string) => void;
   onStickyColorChange: (color: StickyColor) => void;
@@ -62,6 +63,7 @@ export function BoardWorkspace({
   onMoveBackward,
   onMoveForward,
   onMoveItem,
+  onRenameCurrentUser,
   onSelectItem,
   onStartStickyEditing,
   onStickyColorChange,
@@ -87,6 +89,7 @@ export function BoardWorkspace({
       <div className="board-frame" aria-label="Fridgeboard canvas">
         <PresenceStrip
           currentUser={userParticipant}
+          onRenameCurrentUser={onRenameCurrentUser}
           participants={participants}
         />
 

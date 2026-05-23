@@ -38,6 +38,8 @@ import {
   getLiveblocksPublicKey,
   getRoomIdFromUrl,
   isLiveblocksEnabled,
+  normalizeGuestName,
+  saveGuestProfileName,
   setRoomIdInUrl,
 } from "./lib/liveblocks-room";
 import type {
@@ -198,6 +200,7 @@ function LocalBoard({ initialBackground, initialItems }: LocalBoardProps) {
       onCursorLeave={() => {}}
       onCursorMove={() => {}}
       participants={[]}
+      onRenameCurrentUser={() => {}}
       remoteCursors={[]}
       selfCursor={null}
       userParticipant={null}
@@ -347,6 +350,16 @@ function LiveblocksBoard() {
 
         cursorThrottleRef.current = now;
         setMyPresence({ cursor });
+      }}
+      onRenameCurrentUser={(name) => {
+        const nextName = normalizeGuestName(name);
+
+        if (!nextName || nextName === myPresence.name) {
+          return;
+        }
+
+        saveGuestProfileName(nextName);
+        setMyPresence({ name: nextName });
       }}
       onStartStickyEditing={(itemId) => {
         const activeEditor = remoteParticipants.find(
