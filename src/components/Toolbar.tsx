@@ -1,4 +1,4 @@
-import type { BoardBackground, BoardItem, StickyNoteItem } from "../types";
+import type { BoardBackground, BoardItem } from "../types";
 
 type ToolbarProps = {
   background: BoardBackground;
@@ -32,9 +32,7 @@ export function Toolbar({
   onStickyTextChange,
 }: ToolbarProps) {
   const selectedSticky =
-    selectedItem?.type === "sticky-note"
-      ? (selectedItem as StickyNoteItem)
-      : undefined;
+    selectedItem?.type === "sticky-note" ? selectedItem : undefined;
 
   return (
     <div className="toolbar" aria-label="Board tools">

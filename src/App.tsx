@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Toolbar } from "./components/Toolbar";
 import { WhiteboardCanvas } from "./components/WhiteboardCanvas";
 import type {
@@ -9,10 +9,9 @@ import type {
   StickyNoteItem,
   TapeItem,
 } from "./types";
+import { BOARD_HEIGHT, BOARD_WIDTH, getItemSize } from "./types";
 
 const STORAGE_KEY = "fridgeboard-mvp-state";
-const BOARD_WIDTH = 1200;
-const BOARD_HEIGHT = 800;
 
 type PersistedState = {
   background: BoardBackground;
@@ -73,7 +72,7 @@ function loadInitialState(): PersistedState {
 }
 
 export default function App() {
-  const initialState = useMemo(() => loadInitialState(), []);
+  const [initialState] = useState<PersistedState>(() => loadInitialState());
   const [items, setItems] = useState<BoardItem[]>(initialState.items);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [background, setBackground] = useState<BoardBackground>(
@@ -92,6 +91,52 @@ export default function App() {
 
   const selectedItem = items.find((item) => item.id === selectedItemId);
 
+  function clamp(value: number, min: number, max: number) {
+    return Math.min(Math.max(value, min), max);
+  }
+
+  function selectItem(itemId: string | null) {
+    setSelectedItemId(itemId);
+
+    if (!itemId) {
+      return;
+    }
+
+    setItems((currentItems) => {
+      const selectedIndex = currentItems.findIndex((item) => item.id === itemId);
+
+      if (selectedIndex < 0 || selectedIndex === currentItems.length - 1) {
+        return currentItems;
+      }
+
+      const selected = currentItems[selectedIndex];
+
+      return [
+        ...currentItems.slice(0, selectedIndex),
+        ...currentItems.slice(selectedIndex + 1),
+        selected,
+      ];
+    });
+  }
+
+  function moveItem(itemId: string, nextX: number, nextY: number) {
+    setItems((currentItems) =>
+      currentItems.map((item) => {
+        if (item.id !== itemId) {
+          return item;
+        }
+
+        const { width, height } = getItemSize(item);
+
+        return {
+          ...item,
+          x: clamp(nextX, 0, BOARD_WIDTH - width),
+          y: clamp(nextY, 0, BOARD_HEIGHT - height),
+        };
+      }),
+    );
+  }
+
   function addStickyNote() {
     const stickyNote: StickyNoteItem = {
       id: crypto.randomUUID(),
@@ -102,7 +147,7 @@ export default function App() {
       height: 180,
       text: "New note",
       color: "butter",
-      rotation: -2,
+      rotation: -4,
     };
 
     setItems((currentItems) => [...currentItems, stickyNote]);
@@ -113,8 +158,8 @@ export default function App() {
     const pin: PinItem = {
       id: crypto.randomUUID(),
       type: "pin",
-      x: BOARD_WIDTH / 2,
-      y: BOARD_HEIGHT / 2 - 120,
+      x: BOARD_WIDTH / 2 - 16,
+      y: BOARD_HEIGHT / 2 - 130,
       kind: "round",
       color: "#d27863",
     };
@@ -127,8 +172,8 @@ export default function App() {
     const sticker: StickerItem = {
       id: crypto.randomUUID(),
       type: "sticker",
-      x: BOARD_WIDTH / 2 + 110,
-      y: BOARD_HEIGHT / 2 - 40,
+      x: BOARD_WIDTH / 2 + 70,
+      y: BOARD_HEIGHT / 2 - 70,
       kind,
       color: kind === "star" ? "#efc068" : "#d9868c",
       rotation: kind === "star" ? -5 : 6,
@@ -142,7 +187,7 @@ export default function App() {
     const tape: TapeItem = {
       id: crypto.randomUUID(),
       type: "tape",
-      x: BOARD_WIDTH / 2 - 40,
+      x: BOARD_WIDTH / 2 - 60,
       y: BOARD_HEIGHT / 2 - 150,
       kind: "strip",
       color: "rgba(244, 232, 202, 0.72)",
@@ -185,7 +230,8 @@ export default function App() {
           background={background}
           items={items}
           selectedItemId={selectedItemId}
-          onSelectItem={setSelectedItemId}
+          onSelectItem={selectItem}
+          onMoveItem={moveItem}
         />
 
         <div className="board-frame__toolbar">
