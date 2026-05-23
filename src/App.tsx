@@ -75,10 +75,12 @@ type BoardControls = {
   onStickyTextChange: (text: string) => void;
   onStopStickyEditing: () => void;
   onTransformItem: (itemId: string, transform: ItemTransform) => void;
+  participants: BoardParticipant[];
   persistenceWarning: string | null;
   remoteCursors: RemoteCursor[];
   selectedItemId: string | null;
   statusMessage: string | null;
+  userParticipant: BoardParticipant | null;
 };
 
 type LocalBoardProps = {
@@ -195,7 +197,9 @@ function LocalBoard({ initialBackground, initialItems }: LocalBoardProps) {
       {...controls}
       onCursorLeave={() => {}}
       onCursorMove={() => {}}
+      participants={[]}
       remoteCursors={[]}
+      userParticipant={null}
     />
   );
 }
@@ -208,7 +212,7 @@ function LiveblocksBoard() {
   const [editingStickyId, setEditingStickyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const updateMyPresence = useUpdateMyPresence();
-  const [, setMyPresence] = useMyPresence();
+  const [myPresence, setMyPresence] = useMyPresence();
 
   const remoteParticipants = useMemo(
     () =>
@@ -300,6 +304,18 @@ function LiveblocksBoard() {
     } on this board. Share this URL to collaborate live.`,
   });
 
+  const userParticipant = useMemo(
+    () =>
+      ({
+        clientId: "self",
+        color: myPresence.color,
+        editingStickyId,
+        name: myPresence.name,
+        selectedItemId,
+      }) satisfies BoardParticipant,
+    [editingStickyId, myPresence.color, myPresence.name, selectedItemId],
+  );
+
   const cursorThrottleRef = useRef(0);
 
   return (
@@ -332,10 +348,12 @@ function LiveblocksBoard() {
         setEditingStickyId(itemId);
         setNotice(null);
       }}
+      participants={remoteParticipants}
       remoteCursors={remoteCursors}
       statusMessage={`${others.length + 1} ${
         others.length === 0 ? "person" : "people"
       } on this board. Share this URL to collaborate live.`}
+      userParticipant={userParticipant}
     />
   );
 }
@@ -485,9 +503,11 @@ function useBoardControls({
       commitItems(transformBoardItem(items, itemId, transform));
     },
     persistenceWarning,
+    participants: remoteParticipants,
     remoteCursors: [],
     selectedItemId,
     statusMessage,
+    userParticipant: null,
   };
 }
 

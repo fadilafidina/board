@@ -4,10 +4,12 @@ import type { ItemTransform } from "../../lib/board-actions";
 import type {
   BoardBackground,
   BoardItem,
+  BoardParticipant,
   RemoteCursor,
   StickyColor,
   StickySize,
 } from "../../types";
+import { PresenceStrip } from "./PresenceStrip";
 
 type BoardWorkspaceProps = {
   background: BoardBackground;
@@ -33,10 +35,12 @@ type BoardWorkspaceProps = {
   onStickyTextChange: (text: string) => void;
   onStopStickyEditing: () => void;
   onTransformItem: (itemId: string, transform: ItemTransform) => void;
+  participants?: BoardParticipant[];
   persistenceWarning: string | null;
   remoteCursors?: RemoteCursor[];
   selectedItemId: string | null;
   statusMessage: string | null;
+  userParticipant?: BoardParticipant | null;
 };
 
 export function BoardWorkspace({
@@ -63,10 +67,12 @@ export function BoardWorkspace({
   onStickyTextChange,
   onStopStickyEditing,
   onTransformItem,
+  participants = [],
   persistenceWarning,
   remoteCursors = [],
   selectedItemId,
   statusMessage,
+  userParticipant = null,
 }: BoardWorkspaceProps) {
   const selectedIndex = items.findIndex((item) => item.id === selectedItemId);
   const selectedItem =
@@ -75,6 +81,11 @@ export function BoardWorkspace({
   return (
     <main className="app-shell">
       <div className="board-frame" aria-label="Fridgeboard canvas">
+        <PresenceStrip
+          currentUser={userParticipant}
+          participants={participants}
+        />
+
         <WhiteboardCanvas
           background={background}
           editingStickyId={editingStickyId}
