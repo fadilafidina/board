@@ -28,6 +28,12 @@ type BoardWorkspaceProps = {
   onMoveBackward: () => void;
   onMoveForward: () => void;
   onMoveItem: (itemId: string, x: number, y: number) => void;
+  onMovePreview?: (
+    itemId: string,
+    x: number,
+    y: number,
+    pointer: { x: number; y: number } | null,
+  ) => void;
   onRenameCurrentUser?: (name: string) => void;
   onSelectItem: (itemId: string | null) => void;
   onStartStickyEditing: (itemId: string) => void;
@@ -40,7 +46,8 @@ type BoardWorkspaceProps = {
   persistenceWarning: string | null;
   remoteCursors?: RemoteCursor[];
   selectedItemId: string | null;
-  selfCursor?: RemoteCursor | null;
+  selfCursorColor?: string;
+  selfCursorName?: string;
   statusMessage: string | null;
   userParticipant?: BoardParticipant | null;
   usePresenceCursor?: boolean;
@@ -63,6 +70,7 @@ export function BoardWorkspace({
   onMoveBackward,
   onMoveForward,
   onMoveItem,
+  onMovePreview,
   onRenameCurrentUser,
   onSelectItem,
   onStartStickyEditing,
@@ -75,7 +83,8 @@ export function BoardWorkspace({
   persistenceWarning,
   remoteCursors = [],
   selectedItemId,
-  selfCursor = null,
+  selfCursorColor,
+  selfCursorName,
   statusMessage,
   userParticipant = null,
   usePresenceCursor = false,
@@ -100,14 +109,16 @@ export function BoardWorkspace({
           onCursorLeave={onCursorLeave}
           onCursorMove={onCursorMove}
           onMoveItem={onMoveItem}
+          onMovePreview={onMovePreview}
           onSelectItem={onSelectItem}
           onStartStickyEditing={onStartStickyEditing}
           onStickyTextChange={onStickyTextChange}
           onStopStickyEditing={onStopStickyEditing}
           onTransformItem={onTransformItem}
           remoteCursors={remoteCursors}
-          selfCursor={selfCursor}
           selectedItemId={selectedItemId}
+          selfCursorColor={selfCursorColor}
+          selfCursorName={selfCursorName}
           usePresenceCursor={usePresenceCursor}
         />
 

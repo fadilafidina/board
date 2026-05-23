@@ -127,6 +127,7 @@ export default function App() {
         initialPresence={{
           color: guestProfile?.color ?? "#8b6850",
           cursor: null,
+          draggingItem: null,
           editingStickyId: null,
           name: guestProfile?.name ?? "Guest",
           selectedItemId: null,
@@ -202,7 +203,8 @@ function LocalBoard({ initialBackground, initialItems }: LocalBoardProps) {
       participants={[]}
       onRenameCurrentUser={() => {}}
       remoteCursors={[]}
-      selfCursor={null}
+      selfCursorColor="#8b6850"
+      selfCursorName="You"
       userParticipant={null}
     />
   );
@@ -243,6 +245,29 @@ function LiveblocksBoard() {
         })) satisfies RemoteCursor[],
     [others],
   );
+  const previewItems = useMemo(() => {
+    if (others.length === 0) {
+      return items;
+    }
+
+    return others.reduce((nextItems, other) => {
+      const dragPreview = other.presence.draggingItem;
+
+      if (!dragPreview) {
+        return nextItems;
+      }
+
+      return nextItems.map((item) =>
+        item.id === dragPreview.itemId
+          ? {
+              ...item,
+              x: dragPreview.x,
+              y: dragPreview.y,
+            }
+          : item,
+      );
+    }, items);
+  }, [items, others]);
 
   const saveItems = useMutation(({ storage }, nextItems: BoardItem[]) => {
     storage.set("items", toLiveblocksItems(nextItems));
@@ -257,6 +282,7 @@ function LiveblocksBoard() {
 
   useEffect(() => {
     updateMyPresence({
+      draggingItem: null,
       editingStickyId,
       selectedItemId,
     });
@@ -319,27 +345,15 @@ function LiveblocksBoard() {
       }) satisfies BoardParticipant,
     [editingStickyId, myPresence.color, myPresence.name, selectedItemId],
   );
-  const selfCursor = useMemo(
-    () =>
-      myPresence.cursor
-        ? ({
-            clientId: "self-cursor",
-            color: myPresence.color,
-            name: myPresence.name,
-            x: myPresence.cursor.x,
-            y: myPresence.cursor.y,
-          } satisfies RemoteCursor)
-        : null,
-    [myPresence.color, myPresence.cursor, myPresence.name],
-  );
-
   const cursorThrottleRef = useRef(0);
+  const dragPreviewThrottleRef = useRef(0);
 
   return (
     <BoardWorkspace
       {...controls}
+      items={previewItems}
       onCursorLeave={() => {
-        setMyPresence({ cursor: null });
+        setMyPresence({ cursor: null, draggingItem: null });
       }}
       onCursorMove={(cursor) => {
         const now = performance.now();
@@ -361,6 +375,27 @@ function LiveblocksBoard() {
         saveGuestProfileName(nextName);
         setMyPresence({ name: nextName });
       }}
+      onMoveItem={(itemId, x, y) => {
+        saveItems(moveBoardItem(items, itemId, x, y));
+        setMyPresence({ draggingItem: null });
+      }}
+      onMovePreview={(itemId, x, y, pointer) => {
+        const now = performance.now();
+
+        if (now - dragPreviewThrottleRef.current < 24) {
+          return;
+        }
+
+        dragPreviewThrottleRef.current = now;
+        setMyPresence({
+          cursor: pointer,
+          draggingItem: {
+            itemId,
+            x,
+            y,
+          },
+        });
+      }}
       onStartStickyEditing={(itemId) => {
         const activeEditor = remoteParticipants.find(
           (participant) => participant.editingStickyId === itemId,
@@ -377,7 +412,8 @@ function LiveblocksBoard() {
       }}
       participants={remoteParticipants}
       remoteCursors={remoteCursors}
-      selfCursor={selfCursor}
+      selfCursorColor={myPresence.color}
+      selfCursorName={myPresence.name}
       statusMessage={`${others.length + 1} ${
         others.length === 0 ? "person" : "people"
       } on this board. Share this URL to collaborate live.`}

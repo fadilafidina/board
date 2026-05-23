@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { Group as KonvaGroup } from "konva/lib/Group";
 import type { KonvaEventObject } from "konva/lib/Node";
 import { Layer, Stage } from "react-konva";
@@ -22,14 +22,21 @@ type WhiteboardCanvasProps = {
   onCursorLeave: () => void;
   onCursorMove: (cursor: { x: number; y: number }) => void;
   onMoveItem: (itemId: string, x: number, y: number) => void;
+  onMovePreview?: (
+    itemId: string,
+    x: number,
+    y: number,
+    pointer: { x: number; y: number } | null,
+  ) => void;
   onSelectItem: (itemId: string | null) => void;
   onStartStickyEditing: (itemId: string) => void;
   onStickyTextChange: (text: string) => void;
   onStopStickyEditing: () => void;
   onTransformItem: (itemId: string, transform: ItemTransform) => void;
   remoteCursors: RemoteCursor[];
-  selfCursor: RemoteCursor | null;
   selectedItemId: string | null;
+  selfCursorColor?: string;
+  selfCursorName?: string;
   usePresenceCursor: boolean;
 };
 
@@ -40,17 +47,23 @@ export function WhiteboardCanvas({
   onCursorLeave,
   onCursorMove,
   onMoveItem,
+  onMovePreview,
   onSelectItem,
   onStartStickyEditing,
   onStickyTextChange,
   onStopStickyEditing,
   onTransformItem,
   remoteCursors,
-  selfCursor,
   selectedItemId,
+  selfCursorColor = "#8b6850",
+  selfCursorName = "You",
   usePresenceCursor,
 }: WhiteboardCanvasProps) {
   const nodeMapRef = useRef<Record<string, KonvaGroup | null>>({});
+  const [selfCursorPosition, setSelfCursorPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const selectedItem = items.find((item) => item.id === selectedItemId);
   const editingSticky =
     editingStickyId &&
@@ -58,8 +71,17 @@ export function WhiteboardCanvas({
     selectedItem.id === editingStickyId
       ? (selectedItem as StickyNoteItem)
       : null;
-  const visibleCursors = selfCursor
-    ? [selfCursor, ...remoteCursors]
+  const visibleCursors = selfCursorPosition
+    ? [
+        {
+          clientId: "self-cursor",
+          color: selfCursorColor,
+          name: selfCursorName,
+          x: selfCursorPosition.x,
+          y: selfCursorPosition.y,
+        } satisfies RemoteCursor,
+        ...remoteCursors,
+      ]
     : remoteCursors;
 
   function handleBoardPointerDown(
@@ -86,6 +108,13 @@ export function WhiteboardCanvas({
       return;
     }
 
+    if (usePresenceCursor) {
+      setSelfCursorPosition({
+        x: pointerPosition.x,
+        y: pointerPosition.y,
+      });
+    }
+
     onCursorMove({
       x: pointerPosition.x,
       y: pointerPosition.y,
@@ -103,7 +132,10 @@ export function WhiteboardCanvas({
         height={BOARD_HEIGHT}
         className="whiteboard__stage"
         onMouseDown={handleBoardPointerDown}
-        onMouseLeave={onCursorLeave}
+        onMouseLeave={() => {
+          setSelfCursorPosition(null);
+          onCursorLeave();
+        }}
         onMouseMove={handleBoardPointerMove}
         onTouchStart={handleBoardPointerDown}
         onTouchMove={handleBoardPointerMove}
@@ -118,6 +150,7 @@ export function WhiteboardCanvas({
               isEditing={editingStickyId === item.id}
               isSelected={selectedItemId === item.id}
               onMove={onMoveItem}
+              onMovePreview={onMovePreview}
               onSelect={onSelectItem}
               onStartStickyEditing={onStartStickyEditing}
               onTransform={onTransformItem}
@@ -148,10 +181,20 @@ export function WhiteboardCanvas({
             top: cursor.y,
           }}
         >
-          <span
+          <svg
+            aria-hidden="true"
             className="presence-cursor__pointer"
+            viewBox="0 0 28 36"
             style={{ color: cursor.color }}
-          />
+          >
+            <path
+              d="M3 2L3 30L10 22L15 34L20 32L15 20L25 20L3 2Z"
+              fill="currentColor"
+              stroke="rgba(255, 255, 255, 0.96)"
+              strokeLinejoin="round"
+              strokeWidth="2"
+            />
+          </svg>
           <span className="presence-cursor__label">{cursor.name}</span>
         </div>
       ))}

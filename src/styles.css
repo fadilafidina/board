@@ -190,16 +190,14 @@ button {
 }
 
 .presence-cursor__pointer {
-  width: 0;
-  height: 0;
-  border-top: 14px solid currentColor;
-  border-right: 10px solid transparent;
-  filter: drop-shadow(0 2px 3px rgba(76, 57, 39, 0.2));
-  transform: rotate(-18deg);
+  width: 26px;
+  height: 34px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 4px 6px rgba(76, 57, 39, 0.24));
 }
 
 .presence-cursor__label {
-  margin-top: 12px;
+  margin-top: 16px;
   padding: 5px 9px;
   border-radius: 999px;
   background: rgba(255, 252, 245, 0.96);

@@ -16,6 +16,12 @@ type BoardItemNodeProps = {
   isSelected: boolean;
   item: BoardItem;
   onMove: (itemId: string, x: number, y: number) => void;
+  onMovePreview?: (
+    itemId: string,
+    x: number,
+    y: number,
+    pointer: { x: number; y: number } | null,
+  ) => void;
   onSelect: (itemId: string) => void;
   onStartStickyEditing: (itemId: string) => void;
   onTransform: (itemId: string, transform: ItemTransform) => void;
@@ -27,6 +33,7 @@ export function BoardItemNode({
   isSelected,
   item,
   onMove,
+  onMovePreview,
   onSelect,
   onStartStickyEditing,
   onTransform,
@@ -55,6 +62,17 @@ export function BoardItemNode({
   function handleDragEnd(event: KonvaEventObject<DragEvent>) {
     setCursor("grab");
     onMove(item.id, event.target.x() - width / 2, event.target.y() - height / 2);
+  }
+
+  function handleDragMove(event: KonvaEventObject<DragEvent>) {
+    const pointerPosition = event.target.getStage()?.getPointerPosition() ?? null;
+
+    onMovePreview?.(
+      item.id,
+      event.target.x() - width / 2,
+      event.target.y() - height / 2,
+      pointerPosition,
+    );
   }
 
   function handleTransformEnd(event: KonvaEventObject<Event>) {
@@ -87,6 +105,7 @@ export function BoardItemNode({
       draggable={!isEditing}
       onDblClick={handleDoubleClick}
       onDragEnd={handleDragEnd}
+      onDragMove={handleDragMove}
       onDragStart={handleDragStart}
       onMouseDown={handlePointerDown}
       onMouseEnter={() => setCursor("grab")}
