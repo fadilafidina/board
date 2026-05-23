@@ -154,6 +154,93 @@ button {
   color: #4d4036;
 }
 
+.toolbar__object-tool {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  padding: 0;
+}
+
+.toolbar__mini-sticky {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #f5e198 0%, #ecd27b 100%);
+  box-shadow:
+    inset 0 -1px 0 rgba(137, 112, 62, 0.18),
+    0 2px 5px rgba(92, 71, 47, 0.1);
+}
+
+.toolbar__mini-pin {
+  position: relative;
+  width: 20px;
+  height: 24px;
+  display: inline-block;
+}
+
+.toolbar__mini-pin-head {
+  position: absolute;
+  top: 0;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #da8a75 0%, #c96f5c 100%);
+  box-shadow: 0 2px 4px rgba(92, 71, 47, 0.14);
+}
+
+.toolbar__mini-pin-stem {
+  position: absolute;
+  left: 9px;
+  top: 12px;
+  width: 2px;
+  height: 12px;
+  border-radius: 999px;
+  background: #8b7768;
+}
+
+.toolbar__mini-sticker {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font-size: 21px;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(92, 71, 47, 0.08);
+}
+
+.toolbar__mini-sticker--star {
+  color: #efc068;
+}
+
+.toolbar__mini-sticker--heart {
+  color: #d9868c;
+}
+
+.toolbar__mini-tape {
+  display: inline-block;
+  width: 28px;
+  height: 12px;
+  border-radius: 5px;
+  background: rgba(244, 232, 202, 0.88);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 5px rgba(92, 71, 47, 0.08);
+  transform: rotate(-12deg);
+}
+
+.toolbar__utility-button {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
 .toolbar button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
