@@ -26,7 +26,7 @@ export function StickerVisual({ isSelected, item }: StickerVisualProps) {
         outerRadius={outerRadius}
         fill={item.color}
         stroke="#fffdf8"
-        strokeWidth={isSelected ? 8 : 6}
+        strokeWidth={isSelected ? 4.5 : 3}
         {...withSelectionShadow(isSelected)}
       />
     );
@@ -53,7 +53,7 @@ export function StickerVisual({ isSelected, item }: StickerVisualProps) {
       scaleY={heartScale}
       fill={item.color}
       stroke="#fffdf8"
-      strokeWidth={isSelected ? 8 : 6}
+      strokeWidth={isSelected ? 4.5 : 3}
       strokeScaleEnabled={false}
       {...withSelectionShadow(isSelected)}
     />

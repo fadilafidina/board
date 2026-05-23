@@ -82,10 +82,10 @@ export function getItemSize(item: BoardItem) {
 export function getStickySizeDimensions(size: StickySize) {
   switch (size) {
     case "small":
-      return { width: 180, height: 145 };
+      return { width: 150, height: 118 };
     case "medium":
-      return { width: 220, height: 180 };
+      return { width: 190, height: 148 };
     case "large":
-      return { width: 280, height: 220 };
+      return { width: 240, height: 188 };
   }
 }
