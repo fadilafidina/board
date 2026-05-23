@@ -84,6 +84,15 @@ export function clampPosition(
   };
 }
 
+export function getRandomSpawnPosition(width: number, height: number) {
+  const centerX = (BOARD_WIDTH - width) / 2;
+  const centerY = (BOARD_HEIGHT - height) / 2;
+  const jitterX = (Math.random() - 0.5) * 220;
+  const jitterY = (Math.random() - 0.5) * 170;
+
+  return clampPosition(centerX + jitterX, centerY + jitterY, width, height);
+}
+
 export function getNearestStickySize(width: number): StickySize {
   if (width <= 200) {
     return "small";
@@ -201,6 +210,10 @@ export function normalizeItem(
 export function createStickyNoteItem(options: CreateStickyOptions = {}) {
   const size = options.size ?? "small";
   const dimensions = getStickySizeDimensions(size);
+  const position =
+    typeof options.x === "number" && typeof options.y === "number"
+      ? { x: options.x, y: options.y }
+      : getRandomSpawnPosition(dimensions.width, dimensions.height);
 
   return {
     color: options.color ?? "butter",
@@ -211,20 +224,25 @@ export function createStickyNoteItem(options: CreateStickyOptions = {}) {
     text: options.text ?? "",
     type: "sticky-note",
     width: dimensions.width,
-    x: options.x ?? 524,
-    y: options.y ?? 302,
+    x: position.x,
+    y: position.y,
   } satisfies StickyNoteItem;
 }
 
 export function createPinItem(options: CreatePinOptions = {}) {
+  const position =
+    typeof options.x === "number" && typeof options.y === "number"
+      ? { x: options.x, y: options.y }
+      : getRandomSpawnPosition(32, 52);
+
   return {
     color: options.color ?? "#c96f5c",
     id: crypto.randomUUID(),
     kind: "round",
     rotation: options.rotation ?? 0,
     type: "pin",
-    x: options.x ?? 584,
-    y: options.y ?? 266,
+    x: position.x,
+    y: position.y,
   } satisfies PinItem;
 }
 
@@ -232,32 +250,49 @@ export function createStickerItem(
   kind: StickerKind,
   options: CreateStickerOptions = {},
 ) {
+  const width = options.width ?? STICKER_SIZE;
+  const height = options.height ?? STICKER_SIZE;
+  const position =
+    typeof options.x === "number" && typeof options.y === "number"
+      ? { x: options.x, y: options.y }
+      : getRandomSpawnPosition(width, height);
+
   return {
     color: options.color ?? (kind === "heart" ? "#d9868c" : "#efc068"),
-    height: options.height ?? STICKER_SIZE,
+    height,
     id: crypto.randomUUID(),
     kind,
     rotation: options.rotation ?? (kind === "heart" ? -8 : 8),
     type: "sticker",
-    width: options.width ?? STICKER_SIZE,
-    x: options.x ?? 554,
-    y: options.y ?? 284,
+    width,
+    x: position.x,
+    y: position.y,
   } satisfies StickerItem;
 }
 
 export function createTapeItem(options: CreateTapeOptions = {}) {
+  const position =
+    typeof options.x === "number" && typeof options.y === "number"
+      ? { x: options.x, y: options.y }
+      : getRandomSpawnPosition(120, 30);
+
   return {
     color: options.color ?? "rgba(244, 232, 202, 0.72)",
     id: crypto.randomUUID(),
     kind: "strip",
     rotation: options.rotation ?? -9,
     type: "tape",
-    x: options.x ?? 540,
-    y: options.y ?? 306,
+    x: position.x,
+    y: position.y,
   } satisfies TapeItem;
 }
 
 export function createImageItem(options: CreateImageOptions) {
+  const position =
+    typeof options.x === "number" && typeof options.y === "number"
+      ? { x: options.x, y: options.y }
+      : getRandomSpawnPosition(options.width, options.height);
+
   return {
     height: options.height,
     id: crypto.randomUUID(),
@@ -266,8 +301,8 @@ export function createImageItem(options: CreateImageOptions) {
     src: options.src,
     type: "image",
     width: options.width,
-    x: options.x ?? Math.round((BOARD_WIDTH - options.width) / 2),
-    y: options.y ?? Math.round((BOARD_HEIGHT - options.height) / 2),
+    x: position.x,
+    y: position.y,
   } satisfies ImageItem;
 }
 
