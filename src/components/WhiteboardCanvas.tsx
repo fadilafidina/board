@@ -125,7 +125,11 @@ function isTransformable(item: BoardItem | undefined) {
   );
 }
 
-function renderSticky(item: StickyNoteItem, isSelected: boolean) {
+function renderSticky(
+  item: StickyNoteItem,
+  isSelected: boolean,
+  isEditing: boolean,
+) {
   const palette = stickyPalette[item.color];
   const selectionTone = isSelected ? "#8c6950" : palette.edge;
   const notePadding = Math.max(14, item.width * 0.08);
@@ -155,18 +159,20 @@ function renderSticky(item: StickyNoteItem, isSelected: boolean) {
         fill={palette.fold}
         opacity={0.92}
       />
-      <Text
-        x={notePadding}
-        y={18}
-        width={item.width - notePadding * 2}
-        height={item.height - 32}
-        text={item.text}
-        fill={palette.text}
-        fontSize={fontSize}
-        fontFamily="Avenir Next, Segoe UI, sans-serif"
-        lineHeight={1.35}
-        ellipsis
-      />
+      {!isEditing ? (
+        <Text
+          x={notePadding}
+          y={18}
+          width={item.width - notePadding * 2}
+          height={item.height - 32}
+          text={item.text}
+          fill={palette.text}
+          fontSize={fontSize}
+          fontFamily="Avenir Next, Segoe UI, sans-serif"
+          lineHeight={1.35}
+          ellipsis
+        />
+      ) : null}
     </>
   );
 }
@@ -392,7 +398,9 @@ function BoardItemNode({
       onTouchStart={handlePointerDown}
       onTransformEnd={handleTransformEnd}
     >
-      {item.type === "sticky-note" ? renderSticky(item, isSelected) : null}
+      {item.type === "sticky-note"
+        ? renderSticky(item, isSelected, isEditing)
+        : null}
       {renderPin(item, isSelected)}
       {renderSticker(item, isSelected)}
       {renderTape(item, isSelected)}

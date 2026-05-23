@@ -229,6 +229,13 @@ button {
   display: none;
 }
 
+.toolbar__notice {
+  flex-basis: 100%;
+  color: #8a5a49;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 1260px) {
   .app-shell {
     overflow-x: auto;

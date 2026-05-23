@@ -20,6 +20,7 @@ type ToolbarProps = {
   onDeleteSelected: () => void;
   onMoveBackward: () => void;
   onMoveForward: () => void;
+  persistenceWarning: string | null;
   onStickyColorChange: (color: StickyColor) => void;
   onStickySizeChange: (size: StickySize) => void;
   selectedItem: BoardItem | undefined;
@@ -57,6 +58,7 @@ export function Toolbar({
   onDeleteSelected,
   onMoveBackward,
   onMoveForward,
+  persistenceWarning,
   onStickyColorChange,
   onStickySizeChange,
   selectedItem,
@@ -171,6 +173,12 @@ export function Toolbar({
               </button>
             ))}
           </div>
+        </div>
+      ) : null}
+
+      {persistenceWarning ? (
+        <div className="toolbar__notice" role="status">
+          {persistenceWarning}
         </div>
       ) : null}
     </div>

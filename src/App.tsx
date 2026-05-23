@@ -243,24 +243,56 @@ function readFileAsDataUrl(file: File) {
   });
 }
 
-function loadImageSize(src: string) {
-  return new Promise<{ width: number; height: number }>((resolve, reject) => {
-    const image = new window.Image();
+function prepareUploadedImage(file: File) {
+  return new Promise<{ src: string; width: number; height: number }>(
+    (resolve, reject) => {
+      void readFileAsDataUrl(file)
+        .then((fileSrc) => {
+          const image = new window.Image();
 
-    image.onload = () => {
-      const widthRatio = IMAGE_MAX_WIDTH / image.width;
-      const heightRatio = IMAGE_MAX_HEIGHT / image.height;
-      const scale = Math.min(widthRatio, heightRatio, 1);
+          image.onload = () => {
+            const displayScale = Math.min(
+              IMAGE_MAX_WIDTH / image.width,
+              IMAGE_MAX_HEIGHT / image.height,
+              1,
+            );
+            const displayWidth = Math.round(image.width * displayScale);
+            const displayHeight = Math.round(image.height * displayScale);
 
-      resolve({
-        width: Math.round(image.width * scale),
-        height: Math.round(image.height * scale),
-      });
-    };
+            const storageScale = Math.min(
+              (IMAGE_MAX_WIDTH * 2) / image.width,
+              (IMAGE_MAX_HEIGHT * 2) / image.height,
+              1,
+            );
+            const storageWidth = Math.round(image.width * storageScale);
+            const storageHeight = Math.round(image.height * storageScale);
 
-    image.onerror = () => reject(new Error("Could not load image."));
-    image.src = src;
-  });
+            const canvas = document.createElement("canvas");
+            canvas.width = storageWidth;
+            canvas.height = storageHeight;
+
+            const context = canvas.getContext("2d");
+
+            if (!context) {
+              reject(new Error("Could not prepare uploaded image."));
+              return;
+            }
+
+            context.drawImage(image, 0, 0, storageWidth, storageHeight);
+
+            resolve({
+              src: canvas.toDataURL("image/jpeg", 0.82),
+              width: displayWidth,
+              height: displayHeight,
+            });
+          };
+
+          image.onerror = () => reject(new Error("Could not load image."));
+          image.src = fileSrc;
+        })
+        .catch(reject);
+    },
+  );
 }
 
 export default function App() {
@@ -268,18 +300,26 @@ export default function App() {
   const [items, setItems] = useState<BoardItem[]>(initialState.items);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [editingStickyId, setEditingStickyId] = useState<string | null>(null);
+  const [persistenceWarning, setPersistenceWarning] = useState<string | null>(null);
   const [background, setBackground] = useState<BoardBackground>(
     initialState.background,
   );
 
   useEffect(() => {
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        background,
-        items,
-      } satisfies PersistedState),
-    );
+    try {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          background,
+          items,
+        } satisfies PersistedState),
+      );
+      setPersistenceWarning(null);
+    } catch {
+      setPersistenceWarning(
+        "This board is too large to fully save locally right now.",
+      );
+    }
   }, [background, items]);
 
   useEffect(() => {
@@ -521,17 +561,16 @@ export default function App() {
   }
 
   async function addUploadedImage(file: File) {
-    const src = await readFileAsDataUrl(file);
-    const size = await loadImageSize(src);
+    const preparedImage = await prepareUploadedImage(file);
     const imageItem: ImageItem = {
       id: crypto.randomUUID(),
       type: "image",
       name: file.name,
-      src,
-      width: size.width,
-      height: size.height,
-      x: BOARD_WIDTH / 2 - size.width / 2,
-      y: BOARD_HEIGHT / 2 - size.height / 2,
+      src: preparedImage.src,
+      width: preparedImage.width,
+      height: preparedImage.height,
+      x: BOARD_WIDTH / 2 - preparedImage.width / 2,
+      y: BOARD_HEIGHT / 2 - preparedImage.height / 2,
       rotation: -2,
     };
 
@@ -614,6 +653,7 @@ export default function App() {
             onDeleteSelected={deleteSelectedItem}
             onMoveBackward={() => moveLayer("backward")}
             onMoveForward={() => moveLayer("forward")}
+            persistenceWarning={persistenceWarning}
             onStickyColorChange={updateStickyColor}
             onStickySizeChange={updateStickySize}
             selectedItem={selectedItem}
